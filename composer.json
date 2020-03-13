@@ -1,0 +1,51 @@
+{
+  "name": "takuya/process",
+  "description": "php proc_open wrapper class for shell command process.",
+  "homepage": "https://github.com/takuya/php-process",
+  "type": "library",
+  "license": "GNU General Public License v3.0",
+  "keywords": [
+    "process",
+    "proc_open",
+    "command",
+    "pipe"
+  ],
+  "authors": [
+    {
+      "name": "takuya",
+      "email": "takuya.1st+nospam@gmail.com"
+    }
+  ],
+  "minimum-stability": "dev",
+  "require": {
+    "php": "^7.2"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "^8.0"
+    
+  },
+  "config": {
+    "optimize-autoloader": true,
+    "preferred-install": "dist",
+    "sort-packages": true
+  },
+  
+  "autoload": {
+    "psr-4": {
+      "SysUtil\\ProcessExec\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Tests\\": "tests/"
+      
+    }
+  },
+  "repositories": {
+    "packagist": {
+      "type": "composer",
+      "url": "https://packagist.jp"
+    }
+  }
+  
+}

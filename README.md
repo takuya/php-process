@@ -21,12 +21,14 @@ $ret = stream_get_contents($fd_out);
 
 ```
 
-Feature
+[ → READ More Sample for usage ](https://github.com/takuya/php-process/blob/working/samples/README.md)
+
+Features
 ----
 
-### Buffered IO for STDOUT/STDERR
+### Buffered IO stream for STDOUT/STDERR
 
-Process return bufuffered IO for read/write
+Process will return buffered IO for read/write
 
 Method will return stream.
 
@@ -59,17 +61,33 @@ $fd_out =  $proc->pipe('cat')
 
 ### A Simple and Single File for require.
 
-No required packages.
+No packages required.
 
-A Single File ` require_once 'src/Process.php' `  to use  Process class 
+A Single File ` require_once 'src/Process.php' ` need to use. 
 
-Process class is written by vanilla php. No extra no composer.
+```php
+
+<?php
+require_once 'src/Process.php';
+
+``` 
+
+Using without Composer.phar or Such a package manager, Just write require_once.
+ 
+Process class is written by ***vanilla php***. No extra packages. No pear, No composer, No packages need to install.
+
+
+More Samples
+---
+
+
+More Usage , Read files in this procjet `/samples`, `/tests/Features`  and `./docs`.
 
 
 Resources
 ---------
 
-  * [Documentation]()
-  * [Contributing]()
+  * [Documentation](https://github.com/takuya/php-process/blob/working/docs/procss.funcs.md)
+  * [Contributing](https://github.com/takuya/php-process~~~~)
   * [Report issues](https://github.com/takuya/php-process/issues) and
     [send Pull Requests](https://github.com/takuya/php-process/pulls)

@@ -3,7 +3,7 @@
 namespace Tests\Feature\Process;
 
 use Tests\TestCase;
-use SysUtil\ProcessExec\Process;
+use SystemUtil\Process;
 
 class ProcessExecuteErrorOutputTest  extends TestCase {
   

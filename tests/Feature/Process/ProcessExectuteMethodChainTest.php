@@ -3,8 +3,8 @@
 namespace Tests\Feature\Process;
 
 
-use \Tests\TestCase;
-use SysUtil\ProcessExec\Process;
+use Tests\TestCase;
+use SystemUtil\Process;
 
 class ProcessExectuteMethodChainTest  extends TestCase {
   

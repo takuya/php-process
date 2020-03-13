@@ -1,14 +1,14 @@
 <?php
 
-namespace SysUtil\ProcessExec;
+namespace SystemUtil;
 
 use Closure;
 
 /**
  * Class Process
- * @license  GPL v3
- * @package  App\SysUtil
- * @author   takuya_1st  http://github.com/takuya
+ * @license  GPL-3.0
+ * @package  SystemUtl\Process
+ * @author   takuya_1st <http://github.com/takuya/php-process>
  * @since    2020-03-13
  * @version  1.0
  */
@@ -73,7 +73,7 @@ class Process {
    * @param array $env
    * @param null  $cwd
    */
-  public function __construct( $cmd, $env = [], $cwd = null ) {
+  public function __construct( $cmd=null, $env = [], $cwd = null ) {
     $this->cwd = $cwd;
     $this->env = $env;
     $this->cmd = $cmd;
@@ -81,7 +81,7 @@ class Process {
   }
   
   /**
-   * Struct for Process infomation
+   * Struct for Process information
    * @return object
    */
   protected function processStruct() {
@@ -101,7 +101,7 @@ class Process {
   }
   
   /**
-   * @return object object of
+   * return process information executing or executed.
    *  {
    *      proc: resource of proc_open,
    *      pipes: array of pipes ,
@@ -109,12 +109,14 @@ class Process {
    *      start_time: int started timestamp of process
    *      stat:   array of last proc_get_status() called
    * }
+   * @return object object of anonymous class
    */
   public function getCurrentProcess() {
     return $this->current_process;
   }
   
   /**
+   * Set a timeout for process to limit max execution time.
    * @param int $timeout
    */
   public function setTimeout( $timeout ):void {
@@ -124,6 +126,7 @@ class Process {
   }
   
   /**
+   * get flag
    * @return bool
    */
   public function isUseMemory():bool {
@@ -131,8 +134,8 @@ class Process {
   }
   
   /**
-   * flag for using php://memory.
-   * This will be used IO seekable buffering, wrapper of default stream ['pipe', 'r']
+   * Set the flag whether using php://memory for buffreing stdio .
+   * This will be used IO seekable buffering, wrapper of default stream  ['pipe', 'r']
    * true ; process use php://memory
    * false; process use php://temp
    * @param bool $use_memory
@@ -164,15 +167,17 @@ class Process {
     return;
   }
   /**
+   * pipe command process
    * @throws \Exception
    */
   public function pipeProcess( Process $proc2 ):Process{
-    [$out,$err]=$this->start();
+    list($out,$err) = $this->start();
     $proc2->setInput($out);
     $proc2->start();
     return $proc2;
   }
   /**
+   * pipe command process
    * @throws \Exception
    */
   public function pipe($cmd):Process {
@@ -206,6 +211,7 @@ class Process {
   }
   
   /**
+   * Get input to be pass stdin of process
    * @return resource|array
    */
   public function getInput() {
@@ -213,6 +219,9 @@ class Process {
   }
   
   /**
+   * Set STIDN for process.
+   * $input should be string / fd / filename / stream.
+   * if input is not file name, input string pass as tempfile to process stdin.
    * @param resource|string $input
    * @return  \SysUtil\ProcessExec\Process  return $this for method chaining
    */
@@ -236,6 +245,7 @@ class Process {
   }
   
   /**
+   * Get process Output as Stream.
    * @return resource
    */
   public function getOutput() {
@@ -295,6 +305,7 @@ class Process {
   }
   
   /**
+   * Get process Error output as Stream
    * @return resource  resource
    */
   public function getErrout() {
@@ -319,6 +330,7 @@ class Process {
   }
   
   /**
+   * Set process Error output as Stream
    * @param resource $errout
    */
   public function setErrout( $errout ):void {
@@ -334,6 +346,7 @@ class Process {
   }
   
   /**
+   * Get a process command.
    * @return mixed
    */
   public function getCmd() {
@@ -341,27 +354,33 @@ class Process {
   }
   
   /**
-   * @param mixed $cmd
+   * Set a process command, return $this for method chain.
+   * @param string|array $cmd
+   * @return \SystemUtil\Process
    */
   public function setCmd( $cmd ):void {
     $this->cmd = $cmd;
+    return $this;
   }
   
   /**
-   * @return mixed
+   * Get a working directory set for process to be execute.
+   * @return string
    */
   public function getCwd() {
     return $this->cwd ?? getcwd();
   }
   
   /**
-   * @param mixed $cwd
+   * Set Process working directory.
+   * @param string $cwd
    */
   public function setCwd( $cwd ):void {
     $this->cwd = $cwd;
   }
   
   /**
+   * Get Process Environment Array
    * @return mixed
    */
   public function getEnv() {
@@ -369,6 +388,7 @@ class Process {
   }
   
   /**
+   * Set Environment Array
    * @param array $env
    */
   public function setEnv( $env ):void {
@@ -470,6 +490,7 @@ class Process {
   }
   
   /**
+   * Get callback function on process waiting.
    * @return \Closure --- -- function ( $status, $pipes, $prcoess ){..}
    */
   public function getOnExecuting() {
@@ -488,6 +509,7 @@ class Process {
   }
   
   /**
+   * Get callback function on error.
    * @return \Closure $on_error -- function ( $status, $pipes ){..}
    */
   public function getOnError() {
@@ -497,7 +519,8 @@ class Process {
   }
   
   /**
-   * @param \Closure $on_error --  function ( $status, $pipes ){..}
+   * Set on error callback.
+   * @param \Closure $on_error  --  function ( $status, $pipes ){..}
    */
   public function setOnError( $on_error ):void {
     $this->on_error = $on_error;
@@ -514,6 +537,7 @@ class Process {
   }
   
   /**
+   * Get callback function on success.
    * @return \Closure --  function ( $status, $pipes ){..}
    */
   public function getOnSuccess() {
@@ -523,6 +547,7 @@ class Process {
   }
   
   /**
+   * Set callback function on success.
    * @param \Closure $on_success -- function ( $status, $pipes ){..}
    */
   public function setOnSuccess( $on_success ):void {
@@ -538,6 +563,7 @@ class Process {
   }
   
   /**
+   * get callback function on after proc_close called.
    * @return \Closure
    */
   public function getOnProcClosed():Closure {
@@ -588,6 +614,7 @@ class Process {
   }
   
   /**
+   * check process is running.
    * @return bool
    */
   public function isRunning() {
@@ -612,6 +639,7 @@ class Process {
   }
   
   /**
+   * get current set timeout.
    * @return int
    */
   public function getTimeout() {
@@ -619,6 +647,7 @@ class Process {
   }
   
   /**
+   * Send signal to process id
    * @param int $signal
    * @return bool|void
    */
@@ -631,6 +660,7 @@ class Process {
   }
   
   /**
+   * Wait process.
    * @param \Closure|null $waiting
    * @param \Closure|null $success
    * @param \Closure|null $error
@@ -652,6 +682,7 @@ class Process {
   }
   
   /**
+   * Set Callback function called when waiting process.
    * @param \Closure $on_executing -- function ( $status, $pipes, $prcoess ){..}
    */
   public function setOnWaiting( $on_executing ):void {
@@ -659,6 +690,7 @@ class Process {
   }
   
   /**
+   * Start Process. This is none blocking.
    * array [ 1 -> stdout 2 -> stderr ], raw output, not buffered.
    * @return resource[]
    * @throws \Exception
@@ -675,6 +707,7 @@ class Process {
   }
   
   /**
+   * Add Process Environment
    * @param string $k
    * @param string $v
    */

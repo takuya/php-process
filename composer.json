@@ -3,7 +3,7 @@
   "description": "php proc_open wrapper class for shell command process.",
   "homepage": "https://github.com/takuya/php-process",
   "type": "library",
-  "license": "GNU General Public License v3.0",
+  "license": "GPL-3.0-or-later",
   "keywords": [
     "process",
     "proc_open",

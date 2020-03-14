@@ -47,26 +47,28 @@ class ProcessExecuteStartAndTimeoutKillTest extends TestCase {
     $stime = microtime();
     $proc->start();
     $res = $proc->getCurrentProcess()->proc;
-    proc_terminate($res,2);// SIGTERM=2
     while( $proc->isRunning()){
       usleep(100);
+      proc_terminate($res,2);// SIGTERM=2
     }
     $this->assertLessThan( 1, microtime() - $stime );
   }
   public function testProcessIsAbleToKillProccessInRunCallback(){
-    $proc = new Process(['sh']);
-    $proc->setInput('sleep 10');
+    $proc = new Process(['sleep','10']);
     $stime = microtime();
-    $proc->setOnWaiting(function($status,$pipes,$process_res)use($stime, $proc){
-      if ( $stime + 0.03 < microtime() ){
-        $proc->signal(9);
-      }
-      usleep(10000);
-    });
+    $proc->setTimeout(1);
     $proc->start();
     $proc->wait();
-    $this->assertLessThan( 1, microtime() - $stime );
-    
+    $this->assertLessThan( 2, microtime() - $stime );
+  }
+  public function testProcessForkedShellChildPrcorss(){
+    $proc = new Process(['bash']);
+    $proc->setInput('echo 1; sleep 5;');
+    $stime = microtime();
+    $proc->setTimeout(1);
+    $proc->start();
+    $proc->wait();
+    $this->assertLessThan( 2, microtime() - $stime );
   }
   
   

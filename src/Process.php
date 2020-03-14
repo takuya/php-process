@@ -658,11 +658,12 @@ class Process {
   public function signal( int $signal ) {
     if( $this->current_process->proc  && $this->isRunning()) {
       
-      if ( preg_match('/linux/i', PHP_OS) ){
-        return $this->kill_pstree($signal);
-      }else{
+      var_dump($this->current_process->stat);
+      // if ( preg_match('/linux/i', PHP_OS) ){
+      //   return $this->kill_pstree($signal);
+      // }else{
         return proc_terminate($this->current_process->proc, $signal);
-      }
+      // }
     }
     
     return;

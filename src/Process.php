@@ -7,7 +7,7 @@ use Closure;
 /**
  * Class Process
  * @license  GPL-3.0
- * @package  SystemUtl\Process
+ * @package  SystemUtil\Process
  * @author   takuya_1st <http://github.com/takuya/php-process>
  * @since    2020-03-13
  * @version  1.0
@@ -81,7 +81,7 @@ class Process {
   }
   
   /**
-   * Struct for Process information
+   * Struct of Process information as anonymous class
    * @return object
    */
   protected function processStruct() {
@@ -103,13 +103,14 @@ class Process {
   /**
    * return process information executing or executed.
    *  {
-   *      proc: resource of proc_open,
-   *      pipes: array of pipes ,
-   *      descriptor: array of descrition ,
-   *      start_time: int started timestamp of process
-   *      stat:   array of last proc_get_status() called
-   * }
-   * @return object object of anonymous class
+   *      "proc": resource of proc_open,
+   *      "pipes": array of pipes ,
+   *      "descriptor": array of descrition ,
+   *      "start_time": int started timestamp of process,
+   *      "stat":   array of proc_get_status() last called result,
+   *   } as anonymous class
+   *
+   * @return object object of anonymous class.
    */
   public function getCurrentProcess() {
     return $this->current_process;
@@ -126,7 +127,7 @@ class Process {
   }
   
   /**
-   * get flag
+   * Get flag tempfile type.
    * @return bool
    */
   public function isUseMemory():bool {
@@ -134,10 +135,10 @@ class Process {
   }
   
   /**
-   * Set the flag whether using php://memory for buffreing stdio .
-   * This will be used IO seekable buffering, wrapper of default stream  ['pipe', 'r']
-   * true ; process use php://memory
-   * false; process use php://temp
+   * Set the flag whether using php://memory for buffreing stdio.
+   *  This will be used IO seekable buffering, wrapper of default stream  ['pipe', 'r']
+   *  true : process use php://memory
+   *  false: process use php://temp
    * @param bool $use_memory
    */
   public function setUseMemory( bool $use_memory ):void {
@@ -223,7 +224,7 @@ class Process {
    * $input should be string / fd / filename / stream.
    * if input is not file name, input string pass as tempfile to process stdin.
    * @param resource|string $input
-   * @return  \SysUtil\ProcessExec\Process  return $this for method chaining
+   * @return  \SystemUtil\Process  return $this for method chaining
    */
   public function setInput( $input ):Process {
     if( is_resource($input) ) {
@@ -279,8 +280,9 @@ class Process {
    * setOutput( $fd=fopen('php://temp', 'w+')) is better choice, than using default ['pipe', 'w'].
    * For same reason, It might be better to avoid using this with 'php://memory' on large output.
    * @param resource|string $output resource(fd) or string(filename)
+   * @return \SystemUtil\Process
    */
-  public function setOutput( $output ):void {
+  public function setOutput( $output ):Process {
     if( is_resource($output) ) {
       $this->output = $output;
     } else {
@@ -290,6 +292,7 @@ class Process {
         // nothing
       }
     }
+    return $this;
   }
   
   /**
@@ -358,7 +361,7 @@ class Process {
    * @param string|array $cmd
    * @return \SystemUtil\Process
    */
-  public function setCmd( $cmd ):void {
+  public function setCmd( $cmd ):Process {
     $this->cmd = $cmd;
     return $this;
   }
@@ -592,7 +595,7 @@ class Process {
   
   /**
    * @param $pipes
-   * @return array
+   * @return array array of string [in,out,err]
    */
   protected function getMapPipeToTemp( $pipes ):array {
     
@@ -615,7 +618,7 @@ class Process {
   
   /**
    * check process is running.
-   * @return bool
+   * @return bool is running status
    */
   public function isRunning() {
     $proc_struct = $this->current_process;
@@ -640,7 +643,7 @@ class Process {
   
   /**
    * get current set timeout.
-   * @return int
+   * @return int timeout
    */
   public function getTimeout() {
     return $this->max_execution_time;
@@ -649,7 +652,7 @@ class Process {
   /**
    * Send signal to process id
    * @param int $signal
-   * @return bool|void
+   * @return bool|void result code
    */
   public function signal( int $signal ) {
     if( $this->current_process->proc ) {
@@ -664,7 +667,7 @@ class Process {
    * @param \Closure|null $waiting
    * @param \Closure|null $success
    * @param \Closure|null $error
-   * @return  resource
+   * @return  resource resource of std output
    */
   public function wait( Closure $waiting = null, Closure $success = null, Closure $error = null ) {
     if( $success ) {
@@ -691,11 +694,11 @@ class Process {
   
   /**
    * Start Process. This is none blocking.
-   * array [ 1 -> stdout 2 -> stderr ], raw output, not buffered.
-   * @return resource[]
+   * array [ 0 -> stdout 1-> stderr ], raw output, not buffered.
+   * @return resource[] array of resouorce [ 0 -> stdout,  1-> stderr ]
    * @throws \Exception
    */
-  public function start() {
+  public function start():array {
     if ( !$this->isRunning() ){
       $this->start_process();
     }

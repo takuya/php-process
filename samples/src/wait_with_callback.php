@@ -16,10 +16,10 @@ $proc->wait(
     usleep(1000*10);
   },
   function ($status,$pipes){
-    var_dump('error occured');
+    var_dump('success.');
   },
   function ($status,$pipes){
-    var_dump('success');
+    var_dump('error occured');
   }
 );
 

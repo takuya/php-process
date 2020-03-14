@@ -5,7 +5,7 @@
   /**
  * Class Process
  * @license  GPL-3.0
- * @package  SystemUtl\Process
+ * @package  SystemUtil\Process
  * @author   takuya_1st <http://github.com/takuya/php-process>
  * @since    2020-03-13
  * @version  1.0
@@ -49,145 +49,145 @@
 - [start](#start)
 - [addEnv](#addEnv)
 
-## __construct
+# __construct
 Process constructor.    
-
-### Descriptoin
 ```php
 __construct ($cmd = null, $env = [], $cwd = null) :void
 ```
-
 ### Pramters
+
 - ***$cmd***: 
 - ***$env***:array 
 - ***$cwd***: 
 
 
-## getCurrentProcess
+
+
+# getCurrentProcess
 return process information executing or executed.    
  {    
-proc: resource of proc_open,    
-pipes: array of pipes ,    
-descriptor: array of descrition ,    
-start_time: int started timestamp of process    
-stat:   array of last proc_get_status() called    
-
-### Descriptoin
+"proc": resource of proc_open,    
+"pipes": array of pipes ,    
+"descriptor": array of descrition ,    
+"start_time": int started timestamp of process,    
+"stat":   array of proc_get_status() last called result,    
+} as anonymous class    
+* @return object object of anonymous class.    
 ```php
-getCurrentProcess () :void
+getCurrentProcess () :object
 ```
 
-### Pramters
+### Return
+
+object : object of anonymous class.
 
 
-## setTimeout
+# setTimeout
 Set a timeout for process to limit max execution time.    
-
-### Descriptoin
 ```php
 setTimeout ($timeout = null) :void
 ```
-
 ### Pramters
+
 - ***$timeout***:int 
 
 
-## isUseMemory
-get flag    
 
-### Descriptoin
+
+# isUseMemory
+Get flag tempfile type.    
 ```php
 isUseMemory () :bool
 ```
 
-### Pramters
+### Return
+
+bool 
 
 
-## setUseMemory
-Set the flag whether using php://memory for buffreing stdio .    
+# setUseMemory
+Set the flag whether using php://memory for buffreing stdio.    
 This will be used IO seekable buffering, wrapper of default stream  ['pipe', 'r']    
-true ; process use php://memory    
-false; process use php://temp    
-
-### Descriptoin
+true : process use php://memory    
+false: process use php://temp    
 ```php
 setUseMemory (bool $use_memory) :void
 ```
-
 ### Pramters
+
 - ***$use_memory***:bool 
 
 
-## run
+
+
+# run
 run Process, and wait for finished. Blocking method.    
-
-### Descriptoin
 ```php
-run () :void
+run () :resource[]
 ```
 
-### Pramters
+### Return
+
+resource[] : fd array, The struct is [ 1=> output , 2=> error]. Both of fd is 'buffered' to enable fseek.
 
 
-## pipeProcess
+# pipeProcess
 pipe command process    
-
-### Descriptoin
 ```php
-pipeProcess (SystemUtil\Process $proc2) :SystemUtil\Process
+pipeProcess (SystemUtil\Process $proc2) :void
 ```
 
-### Pramters
 
 
-## pipe
+
+# pipe
 pipe command process    
-
-### Descriptoin
 ```php
-pipe ($cmd = null) :SystemUtil\Process
+pipe ($cmd = null) :void
 ```
 
-### Pramters
 
 
-## getInput
+
+# getInput
 Get input to be pass stdin of process    
-
-### Descriptoin
 ```php
-getInput () :void
+getInput () :resource|array
 ```
 
-### Pramters
+### Return
+
+resource|array 
 
 
-## setInput
+# setInput
 Set STIDN for process.    
 $input should be string / fd / filename / stream.    
 if input is not file name, input string pass as tempfile to process stdin.    
-
-### Descriptoin
 ```php
-setInput ($input = null) :SystemUtil\Process
+setInput ($input = null) :\SystemUtil\Process
 ```
-
 ### Pramters
+
 - ***$input***:resource | string 
 
+### Return
 
-## getOutput
+\SystemUtil\Process : return $this for method chaining
+
+
+# getOutput
 Get process Output as Stream.    
-
-### Descriptoin
 ```php
-getOutput () :void
+getOutput () :resource
 ```
 
-### Pramters
+### Return
+
+resource 
 
 
-## setOutput
+# setOutput
 Set command output.    
 !! notice    
 The default ['pipe','w'] cannot handle large data.    
@@ -196,253 +196,253 @@ If skip setOutput() and leave null, UnCatchable error will be occurred.
 And you will encounter many troubles.    
 setOutput( $fd=fopen('php://temp', 'w+')) is better choice, than using default ['pipe', 'w'].    
 For same reason, It might be better to avoid using this with 'php://memory' on large output.    
-
-### Descriptoin
 ```php
-setOutput ($output = null) :void
+setOutput ($output = null) :\SystemUtil\Process
 ```
 
-### Pramters
+### Return
+
+\SystemUtil\Process 
 
 
-## getErrout
+# getErrout
 Get process Error output as Stream    
-
-### Descriptoin
 ```php
-getErrout () :void
+getErrout () :resource
 ```
 
-### Pramters
+### Return
+
+resource : resource
 
 
-## setErrout
+# setErrout
 Set process Error output as Stream    
-
-### Descriptoin
 ```php
 setErrout ($errout = null) :void
 ```
-
 ### Pramters
+
 - ***$errout***:resource 
 
 
-## getCmd
+
+
+# getCmd
 Get a process command.    
-
-### Descriptoin
 ```php
-getCmd () :void
+getCmd () :mixed
 ```
 
-### Pramters
+### Return
+
+mixed 
 
 
-## setCmd
-Set a process command.    
-
-### Descriptoin
+# setCmd
+Set a process command, return $this for method chain.    
 ```php
-setCmd ($cmd = null) :void
+setCmd ($cmd = null) :\SystemUtil\Process
 ```
-
 ### Pramters
+
 - ***$cmd***:string | array 
 
+### Return
 
-## getCwd
+\SystemUtil\Process 
+
+
+# getCwd
 Get a working directory set for process to be execute.    
-
-### Descriptoin
 ```php
-getCwd () :void
+getCwd () :string
 ```
 
-### Pramters
+### Return
+
+string 
 
 
-## setCwd
+# setCwd
 Set Process working directory.    
-
-### Descriptoin
 ```php
 setCwd ($cwd = null) :void
 ```
-
 ### Pramters
+
 - ***$cwd***:string 
 
 
-## getEnv
-Get Process Environment Array    
 
-### Descriptoin
+
+# getEnv
+Get Process Environment Array    
 ```php
-getEnv () :void
+getEnv () :mixed
 ```
 
-### Pramters
+### Return
+
+mixed 
 
 
-## setEnv
+# setEnv
 Set Environment Array    
-
-### Descriptoin
 ```php
 setEnv ($env = null) :void
 ```
-
 ### Pramters
+
 - ***$env***:array 
 
 
-## getOnExecuting
+
+
+# getOnExecuting
 Get callback function on process waiting.    
-
-### Descriptoin
 ```php
-getOnExecuting () :void
+getOnExecuting () :\Closure
 ```
 
-### Pramters
+### Return
+
+\Closure : --- -- function ( $status, $pipes, $prcoess ){..}
 
 
-## getOnError
+# getOnError
 Get callback function on error.    
-
-### Descriptoin
 ```php
-getOnError () :void
+getOnError () :\Closure
 ```
 
-### Pramters
+### Return
+
+\Closure : $on_error -- function ( $status, $pipes ){..}
 
 
-## setOnError
+# setOnError
 Set on error callback.    
-
-### Descriptoin
 ```php
 setOnError ($on_error = null) :void
 ```
 
-### Pramters
 
 
-## getOnSuccess
+
+# getOnSuccess
 Get callback function on success.    
-
-### Descriptoin
 ```php
-getOnSuccess () :void
+getOnSuccess () :\Closure
 ```
 
-### Pramters
+### Return
+
+\Closure : --  function ( $status, $pipes ){..}
 
 
-## setOnSuccess
+# setOnSuccess
 Set callback function on success.    
-
-### Descriptoin
 ```php
 setOnSuccess ($on_success = null) :void
 ```
 
-### Pramters
 
 
-## getOnProcClosed
+
+# getOnProcClosed
 get callback function on after proc_close called.    
-
-### Descriptoin
 ```php
-getOnProcClosed () :Closure
+getOnProcClosed () :\Closure
 ```
 
-### Pramters
+### Return
+
+\Closure 
 
 
-## isRunning
+# isRunning
 check process is running.    
-
-### Descriptoin
 ```php
-isRunning () :void
+isRunning () :bool
 ```
 
-### Pramters
+### Return
+
+bool : is running status
 
 
-## getTimeout
+# getTimeout
 get current set timeout.    
-
-### Descriptoin
 ```php
-getTimeout () :void
+getTimeout () :int
 ```
 
-### Pramters
+### Return
+
+int : timeout
 
 
-## signal
+# signal
 Send signal to process id    
-
-### Descriptoin
 ```php
-signal (int $signal) :void
+signal (int $signal) :bool|void
 ```
-
 ### Pramters
+
 - ***$signal***:int 
 
+### Return
 
-## wait
+bool|void : result code
+
+
+# wait
 Wait process.    
-
-### Descriptoin
 ```php
-wait (Closure $waiting = null, Closure $success = null, Closure $error = null) :void
+wait (Closure $waiting = null, Closure $success = null, Closure $error = null) :resource
 ```
-
 ### Pramters
+
 - ***$waiting***:\Closure | null 
 - ***$success***:\Closure | null 
 - ***$error***:\Closure | null 
 
+### Return
 
-## setOnWaiting
+resource : resource of std output
+
+
+# setOnWaiting
 Set Callback function called when waiting process.    
-
-### Descriptoin
 ```php
 setOnWaiting ($on_executing = null) :void
 ```
 
-### Pramters
 
 
-## start
+
+# start
 Start Process. This is none blocking.    
-array [ 1 -> stdout 2 -> stderr ], raw output, not buffered.    
-
-### Descriptoin
+array [ 0 -> stdout 1-> stderr ], raw output, not buffered.    
 ```php
-start () :void
+start () :resource[]
 ```
 
-### Pramters
+### Return
+
+resource[] : array of resouorce [ 0 -> stdout,  1-> stderr ]
 
 
-## addEnv
+# addEnv
 Add Process Environment    
-
-### Descriptoin
 ```php
 addEnv ($k = null, $v = null) :void
 ```
-
 ### Pramters
+
 - ***$k***:string 
 - ***$v***:string 
+
+
 

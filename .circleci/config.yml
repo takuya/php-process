@@ -19,6 +19,7 @@ jobs:
       ## prepare test for ssh
       - run: sudo /etc/init.d/ssh start
       ## prepare ssh login
+      - run: rm -rf ~/.ssh
       - run: ssh-keygen  -t rsa  -N "" -f ~/.ssh/id_rsa
       - run: cat /home/circleci/.ssh/id_rsa.pub > /home/circleci/.ssh/authorized_keys
       - run: ssh-keyscan -t rsa,dsa localhost  2>/dev/null > .ssh/known_hosts

@@ -674,8 +674,9 @@ class Process {
     }else {
       posix_setpgid(0, 0);
       posix_setpgid($pid, $pid);
-      if( posix_getpgid($pid + 1) == posix_getpgid($pid) ) {
-        posix_kill($pid + 1, $signal);
+      foreach (range(1,20) as $i)
+      if( posix_getpgid($pid + $i) == posix_getpgid($pid) ) {
+        posix_kill($pid + $i, $signal);
       }
       posix_kill($pid, $signal);
     }

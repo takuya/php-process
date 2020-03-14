@@ -87,13 +87,15 @@ class ProcessExecuteStartAndTimeoutKillTest extends TestCase {
     fwrite($fin, $str);
     rewind($fin);
     //
+  
+    $stime = microtime();
+
     $proc = new Process('php');
     $proc->setInput($fin);
-    $proc->setTimeout(0.3);
+    $proc->setTimeout(0.1);
     $proc->run();
-    $out = stream_get_contents($proc->getOutput());
-    $err = stream_get_contents($proc->getErrout());
-    $this->assertLessThan(2, preg_match_all('/(HelloWorld)/s', $out, $maches));
-    $this->assertLessThan(2, preg_match_all('/(HelloError)/s', $err, $maches));
+  
+    $this->assertLessThan( 2, microtime() - $stime );
+  
   }
 }

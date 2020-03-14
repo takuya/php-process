@@ -73,7 +73,7 @@ class Process {
    * @param array $env
    * @param null  $cwd
    */
-  public function __construct( $cmd=null, $env = [], $cwd = null ) {
+  public function __construct( $cmd = null, $env = [], $cwd = null ) {
     $this->cwd = $cwd;
     $this->env = $env;
     $this->cmd = $cmd;
@@ -93,10 +93,6 @@ class Process {
       public $stat           = null;
       public $buffered_pipes = [];
       public $start_time     = null;
-      
-      public function kill() {
-        proc_terminate($this->proc, 9);
-      }
     };
   }
   
@@ -109,7 +105,6 @@ class Process {
    *      "start_time": int started timestamp of process,
    *      "stat":   array of proc_get_status() last called result,
    *   } as anonymous class
-   *
    * @return object object of anonymous class.
    */
   public function getCurrentProcess() {
@@ -167,25 +162,7 @@ class Process {
     
     return;
   }
-  /**
-   * pipe command process
-   * @throws \Exception
-   */
-  public function pipeProcess( Process $proc2 ):Process{
-    list($out,$err) = $this->start();
-    $proc2->setInput($out);
-    $proc2->start();
-    return $proc2;
-  }
-  /**
-   * pipe command process
-   * @throws \Exception
-   */
-  public function pipe($cmd):Process {
-    $proc2 = new Process($cmd, $this->getEnv(),$this->getCwd());
-    $this->pipeProcess($proc2);
-    return $proc2;
-  }
+  
   /**
    * @return object
    * @throws \Exception
@@ -196,9 +173,7 @@ class Process {
       1 => $this->getOutput() ?: ['pipe', 'w'],
       2 => $this->getErrout() ?: ['pipe', 'w'],
     ];
-
     $process = proc_open($this->getCmd(), $descriptor, $pipes, $this->getCwd(), $this->getEnv());
-    
     if( ! $process ) {
       throw new \Exception("proc_open failed");
     }
@@ -207,6 +182,7 @@ class Process {
     $this->current_process->descriptor = $descriptor;
     $this->current_process->stat = proc_get_status($process);
     $this->current_process->start_time = time();
+    $pid = $this->current_process->stat['pid'];
     
     return $this->current_process;
   }
@@ -242,6 +218,7 @@ class Process {
         }
       }
     }
+    
     return $this;
   }
   
@@ -292,6 +269,7 @@ class Process {
         // nothing
       }
     }
+    
     return $this;
   }
   
@@ -363,6 +341,7 @@ class Process {
    */
   public function setCmd( $cmd ):Process {
     $this->cmd = $cmd;
+    
     return $this;
   }
   
@@ -523,7 +502,7 @@ class Process {
   
   /**
    * Set on error callback.
-   * @param \Closure $on_error  --  function ( $status, $pipes ){..}
+   * @param \Closure $on_error --  function ( $status, $pipes ){..}
    */
   public function setOnError( $on_error ):void {
     $this->on_error = $on_error;
@@ -638,7 +617,7 @@ class Process {
     if( ! $this->getTimeout() ) {
       return;
     }
-    $this->current_process->kill();
+    $this->signal(15);
   }
   
   /**
@@ -655,11 +634,51 @@ class Process {
    * @return bool|void result code
    */
   public function signal( int $signal ) {
-    if( $this->current_process->proc ) {
+    if( $this->current_process->proc && $this->isRunning() ) {
       return proc_terminate($this->current_process->proc, $signal);
     }
     
     return;
+  }
+  
+  /**
+   * pipe command process
+   * @throws \Exception
+   */
+  public function pipe( $cmd ):Process {
+    $proc2 = new Process($cmd, $this->getEnv(), $this->getCwd());
+    $this->pipeProcess($proc2);
+    
+    return $proc2;
+  }
+  
+  /**
+   * pipe command process
+   * @throws \Exception
+   */
+  public function pipeProcess( Process $proc2 ):Process {
+    list($out, $err) = $this->start();
+    $proc2->setInput($out);
+    $proc2->start();
+    
+    return $proc2;
+  }
+  
+  /**
+   * Start Process. This is none blocking.
+   * array [ 0 -> stdout 1-> stderr ], raw output, not buffered.
+   * @return resource[] array of resouorce [ 0 -> stdout,  1-> stderr ]
+   * @throws \Exception
+   */
+  public function start():array {
+    if( ! $this->isRunning() ) {
+      $this->start_process();
+    }
+    
+    return [
+      $this->getOutput() ?: $this->current_process->pipes[1],
+      $this->getErrout() ?: $this->current_process->pipes[2],
+    ];
   }
   
   /**
@@ -680,8 +699,8 @@ class Process {
       $this->setOnWaiting($waiting);
     }
     $this->wait_process();
-
-    return  $this->getOutput();
+    
+    return $this->getOutput();
   }
   
   /**
@@ -690,23 +709,6 @@ class Process {
    */
   public function setOnWaiting( $on_executing ):void {
     $this->on_executing = $on_executing;
-  }
-  
-  /**
-   * Start Process. This is none blocking.
-   * array [ 0 -> stdout 1-> stderr ], raw output, not buffered.
-   * @return resource[] array of resouorce [ 0 -> stdout,  1-> stderr ]
-   * @throws \Exception
-   */
-  public function start():array {
-    if ( !$this->isRunning() ){
-      $this->start_process();
-    }
-    
-    return [
-      $this->getOutput() ?: $this->current_process->pipes[1],
-      $this->getErrout() ?: $this->current_process->pipes[2],
-    ];
   }
   
   /**

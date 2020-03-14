@@ -14,7 +14,7 @@ class ProcessExectuteOutputTest extends TestCase {
     
     $this->expectException(\Exception::class);
     $output = "/a";
-    $proc = new Process('dig dns.google +short');
+    $proc = new Process('date');
     $proc->setOutput($output);
     $proc->run();
   }
@@ -24,11 +24,11 @@ class ProcessExectuteOutputTest extends TestCase {
    */
   public function testOutputRedirectToFile() {
     $output = "/tmp/test";
-    $proc = new Process('dig dns.google +short');
+    $proc = new Process(['echo','Hello']);
     $proc->setOutput($output);
     $proc->run();
     $str = file_get_contents($output);
-    $this->assertRegExp("/8\.8\.8\.8/", $str);
+    $this->assertRegExp("/hello/i", $str);
     @unlink($output);
   }
   
@@ -37,31 +37,31 @@ class ProcessExectuteOutputTest extends TestCase {
    */
   public function testOutputRedirectToFd() {
     $fout = fopen('php://temp', 'w+');
-    $proc = new Process('dig dns.google +short');
+    $proc = new Process(['echo','Hello']);
     $proc->setOutput($fout);
     $proc->run();
     rewind($fout);
     $str = stream_get_contents($fout);
-    $this->assertRegExp("/8\.8\.8\.8/", $str);
+    $this->assertRegExp("/hello/i", $str);
   }
   
   /**
    * redirect stdout to php://temp (default)
    */
   public function testOutputRedirectToDefault() {
-    $proc = new Process('dig dns.google +short');
+    $proc = new Process(['echo','Hello']);
     $ret = $proc->run();
     $str = stream_get_contents($ret[1]);
-    $this->assertRegExp("/8\.8\.8\.8/", $str);
+    $this->assertRegExp("/hello/i", $str);
   }
   
   /**
    * redirect stdout to php://temp (default)
    */
   public function testOutputRedirectToDefault2() {
-    $proc = new Process('dig dns.google +short');
+    $proc = new Process(['echo','Hello']);
     $ret = $proc->run();
     $str = stream_get_contents($proc->getOutput());
-    $this->assertRegExp("/8\.8\.8\.8/", $str);
+    $this->assertRegExp("/hello/i", $str);
   }
 }

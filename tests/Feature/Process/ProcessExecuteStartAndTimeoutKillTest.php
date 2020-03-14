@@ -86,13 +86,12 @@ class ProcessExecuteStartAndTimeoutKillTest extends TestCase {
     $fin = fopen('php://temp', 'r+');
     fwrite($fin, $str);
     rewind($fin);
-    //
-  
+    
     $stime = microtime();
 
     $proc = new Process('php');
     $proc->setInput($fin);
-    $proc->setTimeout(0.1);
+    $proc->setTimeout(0.5);
     $proc->run();
   
     $this->assertLessThan( 2, microtime() - $stime );

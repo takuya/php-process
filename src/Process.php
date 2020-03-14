@@ -196,7 +196,6 @@ class Process {
       1 => $this->getOutput() ?: ['pipe', 'w'],
       2 => $this->getErrout() ?: ['pipe', 'w'],
     ];
-
     $process = proc_open($this->getCmd(), $descriptor, $pipes, $this->getCwd(), $this->getEnv());
     
     if( ! $process ) {
@@ -207,7 +206,9 @@ class Process {
     $this->current_process->descriptor = $descriptor;
     $this->current_process->stat = proc_get_status($process);
     $this->current_process->start_time = time();
-    
+  
+    $pid = $this->current_process->stat['pid'];
+  
     return $this->current_process;
   }
   
@@ -655,11 +656,29 @@ class Process {
    * @return bool|void result code
    */
   public function signal( int $signal ) {
-    if( $this->current_process->proc ) {
-      return proc_terminate($this->current_process->proc, $signal);
+    if( $this->current_process->proc  && $this->isRunning()) {
+      
+      if ( preg_match('/linux/i', PHP_OS) ){
+        return $this->kill_pstree($signal);
+      }else{
+        return proc_terminate($this->current_process->proc, $signal);
+      }
     }
     
     return;
+  }
+  private function kill_pstree(int $signal = 15) {
+    $pid = $this->current_process->stat['pid'];
+    if ( `which pkill` != null  ){
+      `pkill -{$signal} -P {$pid}`;
+    }else {
+      posix_setpgid(0, 0);
+      posix_setpgid($pid, $pid);
+      if( posix_getpgid($pid + 1) == posix_getpgid($pid) ) {
+        posix_kill($pid + 1, $signal);
+      }
+      posix_kill($pid, $signal);
+    }
   }
   
   /**

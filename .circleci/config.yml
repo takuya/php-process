@@ -22,6 +22,8 @@ jobs:
       - run: rm -rf ~/.ssh
       - run: ssh-keygen  -t rsa  -N "" -f ~/.ssh/id_rsa
       - run: cat /home/circleci/.ssh/id_rsa.pub > /home/circleci/.ssh/authorized_keys
+      - run: rm .ssh/known_hosts
+      - run: touch .ssh/known_hosts
       - run: ssh-keyscan -t rsa,dsa localhost  2>/dev/null > .ssh/known_hosts
       - run: ssh localhost date
 

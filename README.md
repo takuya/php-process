@@ -21,7 +21,7 @@ $ret = stream_get_contents($fd_out);
 
 ```
 
-[ → READ More Sample for usage ](https://github.com/takuya/php-process/blob/working/samples/README.md)
+[ → READ More Sample for usage ](https://github.com/takuya/php-process/blob/master/samples/README.md)
 
 Features
 ----
@@ -87,7 +87,7 @@ More Usage , Read files in this procjet `/samples`, `/tests/Features`  and `./do
 Resources
 ---------
 
-  * [Documentation](https://github.com/takuya/php-process/blob/working/docs/procss.funcs.md)
-  * [Contributing](https://github.com/takuya/php-process~~~~)
+  * [Documentation](https://github.com/takuya/php-process/blob/master/docs/procss.funcs.md)
+  * [Contributing](https://github.com/takuya/php-process/)
   * [Report issues](https://github.com/takuya/php-process/issues) and
     [send Pull Requests](https://github.com/takuya/php-process/pulls)

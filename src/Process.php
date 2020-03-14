@@ -653,39 +653,11 @@ class Process {
    */
   public function signal( int $signal ) {
     if( $this->current_process->proc  && $this->isRunning()) {
-      
-      //var_dump($this->current_process->stat);
-      // if ( preg_match('/linux/i', PHP_OS) ){
-      //   $pid = $this->current_process->stat['pid'];
-      //   // posix_setpgid(0, 0);
-      //   // posix_setpgid($pid, $pid);
-      //   // posix_kill($pid, $signal);
-      //   // return $this->kill_pstree($signal);
-      // }else{
-        return proc_terminate($this->current_process->proc, $signal);
-      // }
+      return proc_terminate($this->current_process->proc, $signal);
     }
     
     return;
   }
-  // private function kill_pstree(int $signal = 15) {
-  //   $pid = $this->current_process->stat['pid'];
-  //   if ( `which pkill` != null  ){
-  //       // posix_setpgid(0, 0);
-  //       // posix_setpgid($pid, $pid);
-  //     // `pkill -{$signal} -g {$pid}`;
-  //     `pkill -{$signal} -P {$pid}`;
-  //   }else {
-  //
-  //     posix_setpgid(0, 0);
-  //     posix_setpgid($pid, $pid);
-  //     foreach (range(0,20) as $i)
-  //     if( posix_getpgid($pid + $i) == posix_getpgid($pid) ) {
-  //       posix_kill($pid + $i, $signal);
-  //     }
-  //     posix_kill($pid, $signal);
-  //   }
-  // }
   
   /**
    * Wait process.

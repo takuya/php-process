@@ -62,7 +62,7 @@ class ProcessExecuteStartAndTimeoutKillTest extends TestCase {
     $this->assertLessThan( 2, microtime() - $stime );
   }
   public function testProcessForkedShellChildPrcorss(){
-    $proc = new Process(['bash']);
+    $proc = new Process(['sh']);
     $proc->setInput('echo 1; sleep 5;');
     $stime = microtime();
     $proc->setTimeout(1);

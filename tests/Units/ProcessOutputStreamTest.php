@@ -9,7 +9,7 @@ class ProcessOutputStreamTest extends TestCase {
   
   public function testOutputStreamIsBufferedIsSeekable() {
     $proc = new Process(['sh']);
-    $proc->setInput('echo -n HelloWorld');
+    $proc->setInput('echo HelloWorld');
     $proc->run();
     $fd = $proc->getOutput();
     $this->assertEquals(true, stream_get_meta_data($fd)['seekable']);
@@ -17,7 +17,7 @@ class ProcessOutputStreamTest extends TestCase {
   
   public function testOutputStreamIsBufferedIsRewound() {
     $proc = new Process(['sh']);
-    $proc->setInput('echo -n HelloWorld');
+    $proc->setInput('echo HelloWorld');
     $proc->run();
     $fd = $proc->getOutput();
     $this->assertEquals(0, ftell($fd));
@@ -26,12 +26,12 @@ class ProcessOutputStreamTest extends TestCase {
   public function testOutputStreamIsBuffered() {
     
     $proc = new Process(['sh']);
-    $proc->setInput('echo -n HelloWorld');
+    $proc->setInput('echo  HelloWorld');
     $proc->run();
     $fd = $proc->getOutput();
-    $this->assertEquals('HelloWorld', stream_get_contents($fd));
+    $this->assertRegExp('/HelloWorld/', stream_get_contents($fd));
     rewind($fd);
-    $this->assertEquals('HelloWorld', stream_get_contents($fd));
+    $this->assertRegExp('/HelloWorld/', stream_get_contents($fd));
   }
   
   public function testOutputStreamIsBuffered_1Kbytes() {

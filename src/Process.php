@@ -112,6 +112,22 @@ class Process {
   }
   
   /**
+   * Process status.
+   * @return int exit code.  -1 .. 255.
+   */
+  public function getExitStatusCode():int{
+    return $this->current_process->stat['exitcode'];
+  }
+  
+  /**
+   * process is cancled by signal.
+   * @return bool is process signaled.
+   */
+  public function canceled():bool{
+    return $this->current_process->stat['signaled'];
+  }
+  
+  /**
    * Set a timeout for process to limit max execution time.
    * @param double $timeout
    * @return \SystemUtil\Process
@@ -259,7 +275,7 @@ class Process {
    * Set command output.
    * !! notice
    * The default ['pipe','w'] cannot handle large data.
-   * When more than 1Mb Output Data Expected, you should use this method as direct output.
+   * When more than 65536 bytes Output expected, you should use this method as direct output.
    * If skip setOutput() and leave null, UnCatchable error will be occurred.
    * And you will encounter many troubles.
    * setOutput( $fd=fopen('php://temp', 'w+')) is better choice, than using default ['pipe', 'w'].

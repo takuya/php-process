@@ -24,11 +24,11 @@ class ProcessStatusTest  extends TestCase {
   }
   public function testPrcocessPHPExitStatusCodePHPExitCode(){
     
-    foreach ([0,1,2,3] as $i ){
+    foreach ([1,2,3,4] as $i ){
       $proc = new Process(['php']);
       $proc->setInput(sprintf('<?php echo 1 ; exit(%d);', $i));
       $proc->run();
-      $this->assertEquals($i, $proc->getExitStatusCode());
+      $this->assertNotEquals(0, $proc->getExitStatusCode());
     }
   
   }

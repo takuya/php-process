@@ -9,11 +9,11 @@ use SystemUtil\Process;
 class ProcessExecuteStartAndTimeoutKillTest extends TestCase {
   
   public function testWaitTimeIsCurrectCheckWaittedTimeOfDiff(){
-    $proc = new Process(['sh']);
-    $proc->setInput('sleep 1');
-    $stime = microtime();
+    $proc = new Process(['php']);
+    $proc->setInput('<?php usleep(1000);');
+    $stime = microtime(true);
     $proc->run();
-    $this->assertLessThanOrEqual( 1, microtime() - $stime );
+    $this->assertLessThanOrEqual( 0.5, microtime(true) - $stime );
   }
   
   public function testProcessIsAbleToKillProccessIdByProcTerminateWithSIGKILL(){
@@ -32,45 +32,78 @@ class ProcessExecuteStartAndTimeoutKillTest extends TestCase {
   public function testProcessIsAbleToKillProccessIdByProcTerminateWithSIGTERM(){
     $proc = new Process(['sh']);
     $proc->setInput('sleep 3');
-    $stime = microtime();
+    $stime = microtime(true);
     $proc->start();
     $res = $proc->getCurrentProcess()->proc;
     proc_terminate($res,15);// SIGTERM=15
     while( $proc->isRunning()){
       usleep(100);
     }
-    $this->assertLessThan( 1, microtime() - $stime );
+    $this->assertLessThan( 1, microtime(true) - $stime );
   }
   public function testProcessIsAbleToKillProccessIdByProcTerminateWithSIGINT(){
     $proc = new Process(['sh']);
     $proc->setInput('sleep 3');
-    $stime = microtime();
+    $stime = microtime(true);
     $proc->start();
     $res = $proc->getCurrentProcess()->proc;
     while( $proc->isRunning()){
       usleep(100);
       proc_terminate($res,2);// SIGTERM=2
     }
-    $this->assertLessThan( 1, microtime() - $stime );
+    $this->assertLessThan( 1, microtime(true) - $stime );
   }
   public function testProcessIsAbleToKillProccessInRunCallback(){
     $proc = new Process(['sleep','10']);
-    $stime = microtime();
-    $proc->setTimeout(1);
+    $stime = microtime(true);
+    $proc->setTimeout(0.3);
     $proc->start();
     $proc->wait();
-    $this->assertLessThan( 2, microtime() - $stime );
+    $this->assertLessThan( 0.4, microtime(true) - $stime );
   }
-  public function testProcessForkedShellChildPrcorss(){
-    $proc = new Process(['sh']);
-    $proc->setInput('echo 1; sleep 5;');
-    $stime = microtime();
-    $proc->setTimeout(1);
-    $proc->start();
-    $proc->wait();
-    $this->assertLessThan( 2, microtime() - $stime );
+  public function testProcessIsAbleToKillPipedProcess(){
+    $proc = new Process(['sleep','10']);
+    $stime = microtime(true);
+    $proc->setTimeout(1)->pipe(['sleep','9'])
+      ->setTimeout(1)
+      ->wait();
+    $this->assertLessThan( 2, microtime(true) - $stime );
   }
   
+  
+  public function testProcessForkedShellChildProcess(){
+    // to avoid phpunit freeze.
+    // This call will leave zombie process sleep.
+    // PHPUnit run tests, runner will not be killed sub process and grand children from sh->sh->sleep
+    $class_file = (new \ReflectionClass(Process::class))->getFileName();
+    $src = sprintf("<?php
+    use SystemUtil\Process;
+    require_once '%s';
+    \$proc = new Process('sh');
+    \$proc->setInput('echo aaaaa;sleep 10;');
+    \$proc->setTimeout(1);
+    \$proc->run();
+    ", $class_file);
+    
+    $proc = new Process(['php']);
+    $proc->setInput($src);
+    $proc->setTimeout(0.8);
+    
+    $stime = microtime(true);
+    $proc->run();
+    $this->assertLessThan( 1, microtime(true) - $stime );
+  }
+  
+  public function testPHPProcessTimeout(){
+  
+    $proc = new Process('php');
+    $proc->setInput("<?php sleep(10);");
+    $proc->setTimeout(0.3);
+    $stime = microtime(true);
+    $proc->run();
+    // var_dump($proc->getCurrentProcess());
+    $this->assertLessThan( 0.5, microtime(true) - $stime );
+  }
   
   public function testProcessSetTimeout() {
     // prepare
@@ -87,7 +120,7 @@ class ProcessExecuteStartAndTimeoutKillTest extends TestCase {
     fwrite($fin, $str);
     rewind($fin);
     
-    $stime = microtime();
+    $stime = microtime(true);
 
     $proc = new Process('cat');
     $proc->setInput($fin)
@@ -95,7 +128,7 @@ class ProcessExecuteStartAndTimeoutKillTest extends TestCase {
     $proc->setTimeout(0.5);
     $proc->run();
   
-    $this->assertLessThan( 2, microtime() - $stime );
+    $this->assertLessThan( 2, microtime(true) - $stime );
   
   }
 }

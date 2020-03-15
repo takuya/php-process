@@ -44,9 +44,8 @@ class ProcessStatusTest  extends TestCase {
     $this->assertEquals(-1, $proc->getExitStatusCode());
   }
   public function testPrcocesIsCacncedBySingnal(){
-    
-    $proc = new Process(['php']);
-    $proc->setInput('<?php echo 1 ; sleep(3);');
+  
+    $proc = new Process(['sleep','3']);
     $proc->setTimeout(0.1);
     $proc->start();
     $this->assertEquals(-1, $proc->getExitStatusCode());

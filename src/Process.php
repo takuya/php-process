@@ -577,26 +577,38 @@ class Process {
    */
   protected function handleOnFinish() {
     // override pipe(out/err) to 'php://tempfile'.
-    $this->current_process->buffered_pipes = $this->getMapPipeToTemp($this->current_process->pipes);
+    $this->current_process->buffered_pipes = $this->mapPipeToTemp($this->current_process->pipes);
   }
   
   /**
    * @param $pipes
    * @return array array of string [in,out,err]
    */
-  protected function getMapPipeToTemp( $pipes ):array {
+  protected function mapPipeToTemp( $pipes ):array {
     
-    // stdout/stderr map to php://temp for fseek
+    // stdout/stderr map to php://temp for use fseek
     if( $this->getOutput() == null ) {
       $fd_out = $this->getTempFd($this->use_memory);
-      stream_copy_to_stream($pipes[1], $fd_out);
-      rewind($fd_out);
+      if( ! $this->current_process->stat['signaled'] ) {
+        stream_copy_to_stream($pipes[1], $fd_out);
+        rewind($fd_out);
+      } else {
+        // no eof. when canceled. read remain chars in pipe.
+        $bytes_unread = stream_get_meta_data($pipes[1])['unread_bytes'];
+        $bytes_unread > 0 ? fwrite($fd_out, fread($pipes[1], $bytes_unread)) : null;
+      }
       $this->output = $fd_out;
     }
     if( $this->getErrout() == null ) {
       $fd_err = $this->getTempFd($this->use_memory);
-      stream_copy_to_stream($pipes[2], $fd_err);
-      rewind($fd_err);
+      if( ! $this->current_process->stat['signaled'] ) {
+        stream_copy_to_stream($pipes[2], $fd_err);
+        rewind($fd_err);
+      } else {
+        // no eof. when canceled.
+        $bytes_unread = stream_get_meta_data($pipes[2])['unread_bytes'];
+        $bytes_unread > 0 ? fwrite($fd_out, fread($pipes[2], $bytes_unread)) : null;
+      }
       $this->errout = $fd_err;
     }
     
@@ -613,13 +625,16 @@ class Process {
       $proc_struct->stat = proc_get_status($proc_struct->proc);
     }
     
+    // Call proc_get_status() on to finished $proc that lost real [exit_code] and get only '-1'.
+    // Stay conscious of number and times proc_get_status() called.
+    // Be Carefully to call proc_get_status() to avoid lost [exit_code].
     return $proc_struct->proc
            && preg_match('/process/i', get_resource_type($proc_struct->proc))
            && $this->current_process->stat['running'];
   }
   
   /**
-   * check execution time. and kill long execution.
+   * Check execution time. and kill long execution.
    */
   protected function checkTimeout():void {
     if( ! $this->getTimeout() ) {
@@ -630,7 +645,7 @@ class Process {
       return;
     }
     if( microtime(true) > $this->getTimeout() + $proc_struct->start_time ) {
-      $this->signal(15);//Send SIGTERM.
+      $this->signal(15);//SIGTERM
       
       return;
     }
@@ -638,7 +653,7 @@ class Process {
   
   /**
    * get current set timeout.
-   * @return double timeout
+   * @return double timeout.
    */
   public function getTimeout() {
     return $this->max_execution_time;
@@ -650,8 +665,21 @@ class Process {
    * @return bool|void result code
    */
   public function signal( int $signal ) {
-    if( $this->current_process->proc && $this->isRunning() ) {
-      return proc_terminate($this->current_process->proc, $signal);
+    //
+    $proc_struct = $this->current_process;
+    if( ! $proc_struct->proc || ! $proc_struct->stat['running'] ) {
+      return;
+    }
+    proc_terminate($this->current_process->proc, $signal);
+    usleep(100); // for linux. pass threading context.wait for signal sent.
+    // for sure.
+    // retry when proc is stile alive.
+    foreach (range(0, 10) as $idx) {
+      if( ! $this->isRunning() ) {
+        break;
+      }
+      proc_terminate($this->current_process->proc, $signal);
+      usleep(100);
     }
     
     return;

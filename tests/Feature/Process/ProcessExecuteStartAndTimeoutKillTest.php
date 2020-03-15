@@ -72,21 +72,9 @@ class ProcessExecuteStartAndTimeoutKillTest extends TestCase {
   
   
   public function testProcessForkedShellChildProcess(){
-    // to avoid phpunit freeze.
-    // This call will leave zombie process sleep.
-    // PHPUnit run tests, runner will not be killed sub process and grand children from sh->sh->sleep
-    $class_file = (new \ReflectionClass(Process::class))->getFileName();
-    $src = sprintf("<?php
-    use SystemUtil\Process;
-    require_once '%s';
-    \$proc = new Process('sh');
-    \$proc->setInput('echo aaaaa;sleep 10;');
-    \$proc->setTimeout(1);
-    \$proc->run();
-    ", $class_file);
-    
-    $proc = new Process(['php']);
-    $proc->setInput($src);
+
+    $proc = new Process(['sh']);
+    $proc->setInput('echo hello; sleep 10'); // zonmbiee
     $proc->setTimeout(0.8);
     
     $stime = microtime(true);
@@ -95,14 +83,13 @@ class ProcessExecuteStartAndTimeoutKillTest extends TestCase {
   }
   
   public function testPHPProcessTimeout(){
-  
-    $proc = new Process('php');
-    $proc->setInput("<?php sleep(10);");
+    $proc = new Process(['php']);
+    $proc->setInput("<?php echo 1; sleep(3);");
     $proc->setTimeout(0.3);
-    $stime = microtime(true);
     $proc->run();
-    // var_dump($proc->getCurrentProcess());
-    $this->assertLessThan( 0.5, microtime(true) - $stime );
+    $stime = microtime(true);
+    $this->assertLessThan( 1, microtime(true) - $stime );
+    
   }
   
   public function testProcessSetTimeout() {

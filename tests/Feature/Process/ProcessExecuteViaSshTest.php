@@ -11,21 +11,21 @@ class ProcessExecuteViaSshTest extends TestCase {
     
     $cmd = [
       'ssh',
-      's0',
-      'uname -a',
+      'localhost',
+      'echo  Hello via ssh ',
     ];
     $proc = new Process($cmd);
     $proc->run();
     $out = stream_get_contents($proc->getOutput());
     $err = stream_get_contents($proc->getErrout());
-    $this->assertRegExp('/linux/i', $out);
+    $this->assertRegExp('/Hello via ssh/i', $out);
   }
   
   public function testProcessExecuteViaSSHWithInputRedirect() {
     
     $cmd = [
       'ssh',
-      's0',
+      'localhost',
       'cat',
     ];
     $fin = fopen("php://temp", 'w+');

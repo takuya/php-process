@@ -73,7 +73,7 @@ class Process {
    * @param array $env
    * @param null  $cwd
    */
-  public function __construct( $cmd=null, $env = [], $cwd = null ) {
+  public function __construct( $cmd = null, $env = [], $cwd = null ) {
     $this->cwd = $cwd;
     $this->env = $env;
     $this->cmd = $cmd;
@@ -93,10 +93,6 @@ class Process {
       public $stat           = null;
       public $buffered_pipes = [];
       public $start_time     = null;
-      
-      public function kill() {
-        proc_terminate($this->proc, 9);
-      }
     };
   }
   
@@ -109,7 +105,6 @@ class Process {
    *      "start_time": int started timestamp of process,
    *      "stat":   array of proc_get_status() last called result,
    *   } as anonymous class
-   *
    * @return object object of anonymous class.
    */
   public function getCurrentProcess() {
@@ -118,12 +113,20 @@ class Process {
   
   /**
    * Set a timeout for process to limit max execution time.
-   * @param int $timeout
+   * @param double $timeout
+   * @return \SystemUtil\Process
    */
-  public function setTimeout( $timeout ):void {
-    if( is_numeric($timeout) ) {
+  public function setTimeout( $timeout ):Process {
+    if( is_double($timeout) ) {
       $this->max_execution_time = $timeout;
+    } else {
+      if( is_numeric($timeout) ) {
+        $timeout = doubleval($timeout);
+        $this->max_execution_time = $timeout;
+      }
     }
+    
+    return $this;
   }
   
   /**
@@ -167,25 +170,7 @@ class Process {
     
     return;
   }
-  /**
-   * pipe command process
-   * @throws \Exception
-   */
-  public function pipeProcess( Process $proc2 ):Process{
-    list($out,$err) = $this->start();
-    $proc2->setInput($out);
-    $proc2->start();
-    return $proc2;
-  }
-  /**
-   * pipe command process
-   * @throws \Exception
-   */
-  public function pipe($cmd):Process {
-    $proc2 = new Process($cmd, $this->getEnv(),$this->getCwd());
-    $this->pipeProcess($proc2);
-    return $proc2;
-  }
+  
   /**
    * @return object
    * @throws \Exception
@@ -196,9 +181,7 @@ class Process {
       1 => $this->getOutput() ?: ['pipe', 'w'],
       2 => $this->getErrout() ?: ['pipe', 'w'],
     ];
-
     $process = proc_open($this->getCmd(), $descriptor, $pipes, $this->getCwd(), $this->getEnv());
-    
     if( ! $process ) {
       throw new \Exception("proc_open failed");
     }
@@ -206,7 +189,8 @@ class Process {
     $this->current_process->pipes = $pipes;
     $this->current_process->descriptor = $descriptor;
     $this->current_process->stat = proc_get_status($process);
-    $this->current_process->start_time = time();
+    $this->current_process->start_time = microtime(true);
+    $pid = $this->current_process->stat['pid'];
     
     return $this->current_process;
   }
@@ -242,6 +226,7 @@ class Process {
         }
       }
     }
+    
     return $this;
   }
   
@@ -292,6 +277,7 @@ class Process {
         // nothing
       }
     }
+    
     return $this;
   }
   
@@ -363,6 +349,7 @@ class Process {
    */
   public function setCmd( $cmd ):Process {
     $this->cmd = $cmd;
+    
     return $this;
   }
   
@@ -413,7 +400,7 @@ class Process {
       $this->checkTimeout();
     }
     $this->handleEvent('OnFinish');
-    if( $this->current_process->stat['exitcode'] > 0 ) {
+    if( $this->current_process->stat['exitcode'] > 0 || $this->current_process->stat['signaled'] == true ) {
       $this->handleEvent('OnError');
       proc_close($this->current_process->proc);
       $this->handleEvent('OnProcClosed');
@@ -523,7 +510,7 @@ class Process {
   
   /**
    * Set on error callback.
-   * @param \Closure $on_error  --  function ( $status, $pipes ){..}
+   * @param \Closure $on_error --  function ( $status, $pipes ){..}
    */
   public function setOnError( $on_error ):void {
     $this->on_error = $on_error;
@@ -590,26 +577,38 @@ class Process {
    */
   protected function handleOnFinish() {
     // override pipe(out/err) to 'php://tempfile'.
-    $this->current_process->buffered_pipes = $this->getMapPipeToTemp($this->current_process->pipes);
+    $this->current_process->buffered_pipes = $this->mapPipeToTemp($this->current_process->pipes);
   }
   
   /**
    * @param $pipes
    * @return array array of string [in,out,err]
    */
-  protected function getMapPipeToTemp( $pipes ):array {
+  protected function mapPipeToTemp( $pipes ):array {
     
-    // stdout/stderr map to php://temp for fseek
+    // stdout/stderr map to php://temp for use fseek
     if( $this->getOutput() == null ) {
       $fd_out = $this->getTempFd($this->use_memory);
-      stream_copy_to_stream($pipes[1], $fd_out);
-      rewind($fd_out);
+      if( ! $this->current_process->stat['signaled'] ) {
+        stream_copy_to_stream($pipes[1], $fd_out);
+        rewind($fd_out);
+      } else {
+        // no eof. when canceled. read remain chars in pipe.
+        $bytes_unread = stream_get_meta_data($pipes[1])['unread_bytes'];
+        $bytes_unread > 0 ? fwrite($fd_out, fread($pipes[1], $bytes_unread)) : null;
+      }
       $this->output = $fd_out;
     }
     if( $this->getErrout() == null ) {
       $fd_err = $this->getTempFd($this->use_memory);
-      stream_copy_to_stream($pipes[2], $fd_err);
-      rewind($fd_err);
+      if( ! $this->current_process->stat['signaled'] ) {
+        stream_copy_to_stream($pipes[2], $fd_err);
+        rewind($fd_err);
+      } else {
+        // no eof. when canceled.
+        $bytes_unread = stream_get_meta_data($pipes[2])['unread_bytes'];
+        $bytes_unread > 0 ? fwrite($fd_out, fread($pipes[2], $bytes_unread)) : null;
+      }
       $this->errout = $fd_err;
     }
     
@@ -626,24 +625,35 @@ class Process {
       $proc_struct->stat = proc_get_status($proc_struct->proc);
     }
     
+    // Call proc_get_status() on to finished $proc that lost real [exit_code] and get only '-1'.
+    // Stay conscious of number and times proc_get_status() called.
+    // Be Carefully to call proc_get_status() to avoid lost [exit_code].
     return $proc_struct->proc
            && preg_match('/process/i', get_resource_type($proc_struct->proc))
            && $this->current_process->stat['running'];
   }
   
   /**
-   * check execution time. and kill long execution.
+   * Check execution time. and kill long execution.
    */
   protected function checkTimeout():void {
     if( ! $this->getTimeout() ) {
       return;
     }
-    $this->current_process->kill();
+    $proc_struct = $this->current_process;
+    if( ! $proc_struct->stat || ! $proc_struct->stat['running'] ) {
+      return;
+    }
+    if( microtime(true) > $this->getTimeout() + $proc_struct->start_time ) {
+      $this->signal(15);//SIGTERM
+      
+      return;
+    }
   }
   
   /**
    * get current set timeout.
-   * @return int timeout
+   * @return double timeout.
    */
   public function getTimeout() {
     return $this->max_execution_time;
@@ -655,11 +665,64 @@ class Process {
    * @return bool|void result code
    */
   public function signal( int $signal ) {
-    if( $this->current_process->proc ) {
-      return proc_terminate($this->current_process->proc, $signal);
+    //
+    $proc_struct = $this->current_process;
+    if( ! $proc_struct->proc || ! $proc_struct->stat['running'] ) {
+      return;
+    }
+    proc_terminate($this->current_process->proc, $signal);
+    usleep(100); // for linux. pass threading context.wait for signal sent.
+    // for sure.
+    // retry when proc is stile alive.
+    foreach (range(0, 10) as $idx) {
+      if( ! $this->isRunning() ) {
+        break;
+      }
+      proc_terminate($this->current_process->proc, $signal);
+      usleep(100);
     }
     
     return;
+  }
+  
+  /**
+   * pipe command process
+   * @throws \Exception
+   */
+  public function pipe( $cmd ):Process {
+    $proc2 = new Process($cmd, $this->getEnv(), $this->getCwd());
+    $this->pipeProcess($proc2);
+    
+    return $proc2;
+  }
+  
+  /**
+   * pipe command process
+   * @throws \Exception
+   */
+  public function pipeProcess( Process $proc2 ):Process {
+    list($out, $err) = $this->start();
+    $proc2->setInput($out);
+    $proc2->start();
+    
+    return $proc2;
+  }
+  
+  /**
+   * Start Process. This is none blocking.
+   * array [ 0 -> stdout 1-> stderr ], raw output, not buffered.
+   * @return resource[] array of resouorce [ 0 -> stdout,  1-> stderr ]
+   * @throws \Exception
+   */
+  public function start():array {
+    if( ! $this->isRunning() ) {
+      $this->start_process();
+    }
+    
+    return [
+      $this->getOutput() ?: $this->current_process->pipes[1],
+      $this->getErrout() ?: $this->current_process->pipes[2],
+    ];
   }
   
   /**
@@ -680,8 +743,8 @@ class Process {
       $this->setOnWaiting($waiting);
     }
     $this->wait_process();
-
-    return  $this->getOutput();
+    
+    return $this->getOutput();
   }
   
   /**
@@ -690,23 +753,6 @@ class Process {
    */
   public function setOnWaiting( $on_executing ):void {
     $this->on_executing = $on_executing;
-  }
-  
-  /**
-   * Start Process. This is none blocking.
-   * array [ 0 -> stdout 1-> stderr ], raw output, not buffered.
-   * @return resource[] array of resouorce [ 0 -> stdout,  1-> stderr ]
-   * @throws \Exception
-   */
-  public function start():array {
-    if ( !$this->isRunning() ){
-      $this->start_process();
-    }
-    
-    return [
-      $this->getOutput() ?: $this->current_process->pipes[1],
-      $this->getErrout() ?: $this->current_process->pipes[2],
-    ];
   }
   
   /**

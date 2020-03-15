@@ -53,7 +53,7 @@ class ProcessStatusTest  extends TestCase {
     usleep(10);
     $this->assertEquals(-1, $proc->getExitStatusCode());
     $proc->wait();
-    $this->assertEquals(-1, $proc->getExitStatusCode());
+    $this->assertNotEquals(0, $proc->getExitStatusCode());
     $this->assertEquals(true, $proc->canceled() );
   }
 }

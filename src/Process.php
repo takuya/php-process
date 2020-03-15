@@ -113,12 +113,20 @@ class Process {
   
   /**
    * Set a timeout for process to limit max execution time.
-   * @param int $timeout
+   * @param double $timeout
+   * @return \SystemUtil\Process
    */
-  public function setTimeout( $timeout ):void {
-    if( is_numeric($timeout) ) {
+  public function setTimeout( $timeout ):Process {
+    if( is_double($timeout) ) {
       $this->max_execution_time = $timeout;
+    } else {
+      if( is_numeric($timeout) ) {
+        $timeout = doubleval($timeout);
+        $this->max_execution_time = $timeout;
+      }
     }
+    
+    return $this;
   }
   
   /**
@@ -181,7 +189,7 @@ class Process {
     $this->current_process->pipes = $pipes;
     $this->current_process->descriptor = $descriptor;
     $this->current_process->stat = proc_get_status($process);
-    $this->current_process->start_time = time();
+    $this->current_process->start_time = microtime(true);
     $pid = $this->current_process->stat['pid'];
     
     return $this->current_process;
@@ -392,7 +400,7 @@ class Process {
       $this->checkTimeout();
     }
     $this->handleEvent('OnFinish');
-    if( $this->current_process->stat['exitcode'] > 0 ) {
+    if( $this->current_process->stat['exitcode'] > 0 || $this->current_process->stat['signaled'] == true ) {
       $this->handleEvent('OnError');
       proc_close($this->current_process->proc);
       $this->handleEvent('OnProcClosed');
@@ -617,12 +625,20 @@ class Process {
     if( ! $this->getTimeout() ) {
       return;
     }
-    $this->signal(15);
+    $proc_struct = $this->current_process;
+    if( ! $proc_struct->stat || ! $proc_struct->stat['running'] ) {
+      return;
+    }
+    if( microtime(true) > $this->getTimeout() + $proc_struct->start_time ) {
+      $this->signal(15);//Send SIGTERM.
+      
+      return;
+    }
   }
   
   /**
    * get current set timeout.
-   * @return int timeout
+   * @return double timeout
    */
   public function getTimeout() {
     return $this->max_execution_time;

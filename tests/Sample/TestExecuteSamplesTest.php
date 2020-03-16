@@ -12,7 +12,7 @@ class TestExecuteSamplesTest extends TestCase {
     $samples_file = glob(__DIR__.'/../../samples/src/*.php');
     foreach ($samples_file as $f_name) {
       
-      $proc = new Process(['php', '-l', $f_name]);
+      $proc = new Process([trim(`which php`), '-l', $f_name]);
       $proc->run();
       if( ! $proc->getExitStatusCode() == 0 ) {
         var_dump([$proc->getExitStatusCode(), $f_name]);

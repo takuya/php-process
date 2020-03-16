@@ -3,6 +3,12 @@
 # Check https://circleci.com/docs/2.0/language-php/ for more details
 #
 version: 2
+workflows:
+  version: 2
+  test_and_installTest:
+    jobs:
+      - test
+      - install
 jobs:
   test:
     docker:

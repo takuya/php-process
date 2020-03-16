@@ -2,7 +2,7 @@
 
 use SystemUtil\Process;
 
-require_once '../../src/Process.php';
+require_once __DIR__.'/../../src/Process.php';
 
 
 $input_string = 'echo "Hello World"';

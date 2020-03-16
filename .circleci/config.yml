@@ -12,6 +12,30 @@ jobs:
       sample_php_src: |
 
     steps:
+      - checkout
+
+      # Download and cache dependencies
+      - run: sudo apt update
+
+      ## prepare test for ssh
+      - run: sudo apt install -y --no-install-recommends openssh-server openssh-client
+      - run: sudo /etc/init.d/ssh start
+      ## prepare ssh login
+      - run: ls ~/.ssh && rm -rf ~/.ssh
+      - run: ssh-keygen  -t rsa  -N "" -f ~/.ssh/id_rsa
+      - run: cat /home/circleci/.ssh/id_rsa.pub > /home/circleci/.ssh/authorized_keys
+      - run: touch ~/.ssh/known_hosts && rm ~/.ssh/known_hosts
+      - run: ssh-keyscan -t rsa,dsa localhost  2>/dev/null > ~/.ssh/known_hosts
+      - run: ssh localhost date
+
+      ## prepare phpunit
+      - run: composer install -n --prefer-dist
+
+      # run tests with phpunit or codecept
+      - run: ./vendor/bin/phpunit
+      # - run: ./vendor/bin/codecept build
+      # - run: ./vendor/bin/codecept run
+
       ## run test package is able to install
       - run: mkdir /tmp/install-test && cd /tmp/install-test
       - run: composer require takuya/process
@@ -23,29 +47,6 @@ jobs:
             require_once './vendor/autoload.php';
             $proc = new Process(['echo', 'HelloWorld']);
             $proc->run();
-      #      - checkout
-      #
-      #      # Download and cache dependencies
-      #      - run: sudo apt update
-      #
-      #      ## prepare test for ssh
-      #      - run: sudo apt install -y --no-install-recommends openssh-server openssh-client
-      #      - run: sudo /etc/init.d/ssh start
-      #      ## prepare ssh login
-      #      - run: ls ~/.ssh && rm -rf ~/.ssh
-      #      - run: ssh-keygen  -t rsa  -N "" -f ~/.ssh/id_rsa
-      #      - run: cat /home/circleci/.ssh/id_rsa.pub > /home/circleci/.ssh/authorized_keys
-      #      - run: touch ~/.ssh/known_hosts && rm ~/.ssh/known_hosts
-      #      - run: ssh-keyscan -t rsa,dsa localhost  2>/dev/null > ~/.ssh/known_hosts
-      #      - run: ssh localhost date
-      #
-      #      ## prepare phpunit
-      #      - run: composer install -n --prefer-dist
-      #
-      #      # run tests with phpunit or codecept
-      #      - run: ./vendor/bin/phpunit
-      #      # - run: ./vendor/bin/codecept build
-      #      # - run: ./vendor/bin/codecept run
 
 
 

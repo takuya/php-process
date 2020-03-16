@@ -1,6 +1,6 @@
 {
   "name": "takuya/process",
-  "description": "php proc_open wrapper class for shell command process.",
+  "description": "php proc_open wrapper class for shell command process management.",
   "homepage": "https://github.com/takuya/php-process",
   "type": "library",
   "license": "GPL-3.0-or-later",
@@ -37,7 +37,6 @@
   "autoload-dev": {
     "psr-4": {
       "Tests\\": "tests/"
-      
     }
   },
   "repositories": {

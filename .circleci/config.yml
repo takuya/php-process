@@ -7,7 +7,11 @@ workflows:
   version: 2
   test_and_installationt:
     jobs:
-      - test
+      - test:
+          filters:
+            branches:
+              only:
+                - pre-release
 jobs:
   test:
     docker:

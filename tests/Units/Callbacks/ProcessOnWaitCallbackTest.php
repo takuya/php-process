@@ -7,18 +7,18 @@ use SystemUtil\Process;
 
 class ProcessOnWaitCallbackTest  extends TestCase {
   
-  public function testUseOnWaitingCallback() {
+  public function testUseOnWaitingCallbackWillBeCalledAtLeastOnce() {
     
-    $proc = new Process('echo');
+    $proc = new Process('echo');// very fast end program.
     $proc->setOnWaiting(
-      function ( $stat, $pipes ) {
+      function () {
         $this->assertTrue(true);
       });
     $proc->run();
   }
   public function testUseOnWaitingCallbackSetterGetter() {
     
-    $proc = new Process('echo');
+    $proc = new Process();
     
     $default_func = $proc->getOnWaiting();
     $default_func_ref = new  \ReflectionFunction($default_func);
@@ -34,7 +34,7 @@ class ProcessOnWaitCallbackTest  extends TestCase {
     
     $proc = new Process('echo');
     $proc->setOnWaiting(
-      function ( $stat, $pipes, $proc_res ) {
+      function ( $stat, $pipes, $proc_res ) use($proc) {
         $this->assertIsArray($stat);
         $this->assertIsArray($pipes);
         $this->assertEquals('process',get_resource_type($proc_res));
@@ -42,26 +42,32 @@ class ProcessOnWaitCallbackTest  extends TestCase {
         $this->assertArrayHasKey('exitcode', $stat);
         $this->assertArrayHasKey('running', $stat);
         $this->assertArrayHasKey('signaled', $stat);
-        usleep(100);// for sure to call once.
+  
+        // for sure to call once.
+        usleep(10);
+        $proc->setOnWaiting(function(){});
       });
     $proc->run();
   }
   public function testUseOnWaitingCallbackCheckPassedArgumentContent() {
     
     $proc = new Process('php');
-    $proc->setInput('<?php usleep(100);echo "Hello";');
+    $proc->setInput('<?php usleep(1000);echo "Hello";');
     $proc->setOnWaiting(
-      function ( $stat, $pipes, $proc_res ) {
+      function ( $stat, $pipes, $proc_res )  use($proc){
+        // Don't use stream_get_contents() , because of stream_get_contents is blocking I/O.
+        $this->assertEquals(0, fstat($pipes[1])['size']);;
+        $this->assertEquals(0, fstat($pipes[2])['size']);;
         $this->assertEquals(true, $stat['running']);
         $this->assertEquals(-1, $stat['exitcode']);
         $this->assertEquals("stream", get_resource_type($pipes[1]));
         $this->assertEquals("stream", get_resource_type($pipes[2]));;
-        // Dont use stream_get_contents() , becase stream_get_contents is blocking IO.
-        $this->assertEquals(0, fstat($pipes[1])['size']);;
-        $this->assertEquals(0, fstat($pipes[2])['size']);;
-        // TODO ::  SetInput(string) result in pipes[0] null. but should be active resource or else.
+        // TODO ::  SetInput(string) result in pipes[0] is null. but should be active resource or else.
         $this->assertEquals(null, get_resource_type($pipes[0]));
-        usleep(1000);// for sure, called once.
+        
+        // for sure, called once.
+        usleep(10);
+        $proc->setOnWaiting(function(){});
       });
     $proc->run();
     

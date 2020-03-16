@@ -806,6 +806,14 @@ class Process {
     $this->on_executing = $on_executing;
     return $this;
   }
+  // TODO::
+  // /**
+  //  * Unset Listener
+  //  */
+  // public function removeOnWaiting() {
+  //   $this->on_executing = null;
+  // }
+  
   
   /**
    * Add Process Environment

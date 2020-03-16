@@ -31,5 +31,4 @@ class ProcessTimeoutTest extends TestCase {
     $proc->run();
     $this->assertEquals(true, $proc->canceled());
   }
-  
 }

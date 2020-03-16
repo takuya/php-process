@@ -4,6 +4,7 @@ namespace Tests\Units\Callbacks;
 
 use Tests\TestCase;
 use SystemUtil\Process;
+use ReflectionFunction;
 
 class ProcessSuccessOnCallBackTest extends TestCase {
   
@@ -16,17 +17,17 @@ class ProcessSuccessOnCallBackTest extends TestCase {
       });
     $proc->run();
   }
+  
   public function testUseSuccessCallbackSetterGetter() {
     
     $proc = new Process('echo');
-    
     $default_func = $proc->getOnSuccess();
-    $default_func_ref = new  \ReflectionFunction($default_func);
+    $default_func_ref = new  ReflectionFunction($default_func);
     $this->assertEquals(true, $default_func_ref->isClosure());
     $this->assertEquals(2, sizeof($default_func_ref->getParameters()));
     $this->assertEquals($proc, $default_func_ref->getClosureThis());
     //
-    $func = function(){};
+    $func = function () { };
     $proc->setOnSuccess($func);
     $this->assertEquals($func, $proc->getOnSuccess());
   }
@@ -61,10 +62,8 @@ class ProcessSuccessOnCallBackTest extends TestCase {
         $this->assertEquals("Unknown", get_resource_type($pipes[0]));
       });
     $proc->run();
-    
     // check output is buffred and reusable.
     $fd = $proc->getOutput();
     $this->assertEquals(12, strlen(stream_get_contents($fd)));;
-    
   }
 }

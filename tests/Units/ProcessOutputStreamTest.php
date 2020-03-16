@@ -36,7 +36,7 @@ class ProcessOutputStreamTest extends TestCase {
   
   public function testOutputStreamIsBuffered_1Kbytes() {
     $size = 1024;
-    $proc = new Process(sprintf('head -c %d /dev/urandom', $size));
+    $proc = new Process(['head', '-c', $size, '/dev/urandom']);
     $proc->run();
     $fd = $proc->getOutput();
     fseek($fd, SEEK_END);
@@ -45,7 +45,7 @@ class ProcessOutputStreamTest extends TestCase {
   
   public function testOutputStreamIsBuffered_64Kbytes() {
     $size = 256*256;
-    $proc = new Process(sprintf('head -c %d /dev/urandom', $size));
+    $proc = new Process(['head', '-c', $size, '/dev/urandom']);
     $proc->run();
     $fd = $proc->getOutput();
     fseek($fd, SEEK_END);
@@ -62,7 +62,7 @@ class ProcessOutputStreamTest extends TestCase {
   
   }
   public function testOutputStreamIsBuffered_1Mbytes() {
-    $size = 1024*1000;
+    $size = 1024*1024;
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
     $proc->setOutput($fd = fopen('php://temp', 'w'));
     $proc->run();
@@ -72,7 +72,7 @@ class ProcessOutputStreamTest extends TestCase {
     
   }
   public function testOutputStreamIsBuffered_10Mbytes() {
-    $size = 1024*1000*10;
+    $size = 1024*1024*10;
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
     $proc->setOutput($fd = fopen('php://temp', 'w'));
     $proc->run();
@@ -82,7 +82,7 @@ class ProcessOutputStreamTest extends TestCase {
   }
   
   public function testOutputStreamIsBuffered_100Mbytes() {
-    $size = 1024*1000*100;
+    $size = 1024*1024*100;
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
     $proc->setOutput($fd = fopen('php://temp', 'w'));
     $proc->run();

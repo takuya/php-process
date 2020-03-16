@@ -21,6 +21,11 @@ jobs:
       $proc->run();
 
     steps:
+      ## run test package is able to install
+      - run: mkdir /tmp/install-test && cd /tmp/install-test
+      - run: composer install takuya/process
+      - run: echo << parameters.sample_php_src >> > run.php
+      - run: php run.php
       #      - checkout
       #
       #      # Download and cache dependencies
@@ -45,10 +50,5 @@ jobs:
       #      # - run: ./vendor/bin/codecept build
       #      # - run: ./vendor/bin/codecept run
 
-      ## run test package is able to install
-      - run: mkdir /tmp/install-test && cd /tmp/install-test
-      - run: composer install takuya/process
-      - run: echo << parameters.sample_php_src >> > run.php
-      - run: php run.php
-        
+
 

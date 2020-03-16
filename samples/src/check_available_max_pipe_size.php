@@ -29,11 +29,9 @@ function checkPipe2(){
     $proc = new Process('php');
     $proc->setInput(sprintf('<?php
     $fd=fopen("php://stderr","w+");
-    foreach( range(0,%d) as $i ){ fwrite($fd, "1"); };
-    fflush($fd);
-    fclose($fd);
-    ;
-  ',$size));
+    foreach( range(0,%d) as $i ){ fwrite($fd, 0); };
+    fflush($fd);fclose($fd);',$size));
+    
     $proc->setTimeout(1);
     $proc->run();
     if($proc->canceled()) {

@@ -336,9 +336,10 @@ class Process {
   
   /**
    * Set process Error output as Stream
-   * @param resource $errout
+   * @param resource|string $errout
+   * @return \SystemUtil\Process return $this.
    */
-  public function setErrout( $errout ):void {
+  public function setErrout( $errout ):Process {
     if( is_resource($errout) ) {
       $this->errout = $errout;
     } else {
@@ -348,6 +349,7 @@ class Process {
         // do nothing.
       }
     }
+    return $this;
   }
   
   /**

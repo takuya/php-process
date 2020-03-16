@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Units;
+namespace Tests\Units\ProcessExec;
 
 use Tests\TestCase;
 use SystemUtil\Process;

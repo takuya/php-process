@@ -206,7 +206,6 @@ class Process {
     $this->current_process->descriptor = $descriptor;
     $this->current_process->stat = proc_get_status($process);
     $this->current_process->start_time = microtime(true);
-    $pid = $this->current_process->stat['pid'];
     
     return $this->current_process;
   }
@@ -418,7 +417,8 @@ class Process {
       $this->checkTimeout();
     }
     $this->handleEvent('OnFinish');
-    if( $this->current_process->stat['exitcode'] > 0 || $this->current_process->stat['signaled'] == true ) {
+    
+    if( $this->getExitStatusCode() > 0 || $this->canceled() ) {
       $this->handleEvent('OnError');
       proc_close($this->current_process->proc);
       $this->handleEvent('OnProcClosed');
@@ -464,8 +464,9 @@ class Process {
    */
   protected function handleOnStart() {
     if( $this->getInput() == null ) {
-      $callback_on_start = $this->getInputFdCloseCallback();
-      $callback_on_start($this->current_process->pipes);
+      // Avoid to read blocking pipes[0] must be closed. this function is ensure.
+      $callback__func_on_start = $this->getInputFdCloseCallback();
+      $callback__func_on_start($this->current_process->pipes);
     }
   }
   
@@ -490,7 +491,7 @@ class Process {
    *
    */
   protected function handleOnWait() {
-    $callback_on_every_waiting = $this->getOnExecuting();
+    $callback_on_every_waiting = $this->getOnWaiting();
     $callback_on_every_waiting(
       $this->current_process->stat,
       $this->current_process->pipes,
@@ -499,10 +500,10 @@ class Process {
   
   /**
    * Get callback function on process waiting.
-   * @return \Closure --- -- function ( $status, $pipes, $prcoess ){..}
+   * @return \Closure --- -- function ( $status, $pipes, $process_resouce ){..}
    */
-  public function getOnExecuting() {
-    $default = function ( $status, $pipes, $prcoess ) { };
+  public function getOnWaiting() {
+    $default = function ( $status, $pipes, $prcess_res ) { };
     
     return $this->on_executing ?? $default;
   }
@@ -512,8 +513,8 @@ class Process {
    */
   protected function handleOnError() {
     $this->is_successful = false;
-    $callback_on_error = $this->getOnError();
-    $callback_on_error($this->current_process->proc, $this->current_process->buffered_pipes);
+    $callback_func_on_error = $this->getOnError();
+    $callback_func_on_error($this->current_process->stat, $this->current_process->buffered_pipes);
   }
   
   /**
@@ -540,8 +541,8 @@ class Process {
   protected function handleOnSuccess() {
     $this->is_successful = true;
     // call user func
-    $callback_on_finished = $this->getOnSuccess();
-    $callback_on_finished($this->current_process->stat, $this->current_process->buffered_pipes);
+    $callback_func_on_success = $this->getOnSuccess();
+    $callback_func_on_success($this->current_process->stat, $this->current_process->buffered_pipes);
   }
   
   /**
@@ -557,17 +558,19 @@ class Process {
   /**
    * Set callback function on success.
    * @param \Closure $on_success -- function ( $status, $pipes ){..}
+   * @return \SystemUtil\Process return this.
    */
-  public function setOnSuccess( $on_success ):void {
+  public function setOnSuccess( $on_success ):Process {
     $this->on_success = $on_success;
+    return $this;
   }
   
   /**
    *
    */
   protected function handleOnProcClosed() {
-    $callback_on_proc_closed = $this->getOnProcClosed();
-    $callback_on_proc_closed($this->current_process->descriptor[1], $this->current_process->descriptor[2]);
+    $callback_func_on_proc_closed = $this->getOnProcClosed();
+    $callback_func_on_proc_closed($this->current_process->descriptor[1], $this->current_process->descriptor[2]);
   }
   
   /**
@@ -652,6 +655,33 @@ class Process {
   }
   
   /**
+   * Check Process finished Successfully.
+   * @return bool
+   */
+  public function isSucessful(){
+    return !$this->isRunning() &&  $this->getExitStatusCode() === 0 ;
+  }
+  
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isError(){
+    return !$this->isRunning() &&  $this->getExitStatusCode() >0 ;
+  }
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isNotRunning(){
+    return !$this->isRunning();
+  }
+  
+  /**
    * Check execution time. and kill long execution.
    */
   protected function checkTimeout():void {
@@ -659,7 +689,7 @@ class Process {
       return;
     }
     $proc_struct = $this->current_process;
-    if( ! $proc_struct->stat || ! $proc_struct->stat['running'] ) {
+    if( !$this->isRunning() ) {
       return;
     }
     if( microtime(true) > $this->getTimeout() + $proc_struct->start_time ) {
@@ -685,10 +715,10 @@ class Process {
   public function signal( int $signal ) {
     //
     $proc_struct = $this->current_process;
-    if( ! $proc_struct->proc || ! $proc_struct->stat['running'] ) {
+    if( ! $this->isRunning() ) {
       return;
     }
-    proc_terminate($this->current_process->proc, $signal);
+    proc_terminate($proc_struct->proc, $signal);
     usleep(100); // for linux. pass threading context.wait for signal sent.
     // for sure.
     // retry when proc is stile alive.
@@ -696,7 +726,7 @@ class Process {
       if( ! $this->isRunning() ) {
         break;
       }
-      proc_terminate($this->current_process->proc, $signal);
+      proc_terminate($proc_struct->proc, $signal);
       usleep(100);
     }
     
@@ -767,10 +797,14 @@ class Process {
   
   /**
    * Set Callback function called when waiting process.
+   * Don't use blocking IO functions(ie. stream_get_contents) in this callback.
+   * stream_get_contents is blocking IO. stream_get_contents cannot be used as realtime output.
    * @param \Closure $on_executing -- function ( $status, $pipes, $prcoess ){..}
+   * @return \SystemUtil\Process return this.
    */
-  public function setOnWaiting( $on_executing ):void {
+  public function setOnWaiting( $on_executing ):Process {
     $this->on_executing = $on_executing;
+    return $this;
   }
   
   /**

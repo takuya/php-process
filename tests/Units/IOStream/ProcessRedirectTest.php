@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Units;
+namespace Tests\Units\IOStream;
 
 use Tests\TestCase;
 use SystemUtil\Process;

@@ -23,6 +23,12 @@ $ret = stream_get_contents($fd_out);
 
 [ → READ More Sample for usage ](https://github.com/takuya/php-process/blob/master/samples/README.md)
 
+Installation
+----
+```sh
+composer require takuya/process
+```
+
 Features
 ----
 

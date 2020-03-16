@@ -10,18 +10,20 @@ jobs:
       - image: circleci/php:7.4.3-cli
     parameters:
       sample_php_src: |
-        <?php
-        use SystemUtil\Process;
-        require_once __DIR__.'/./vendor/autoload.php';
-        $proc = new Process(['echo', 'HelloWorld']);
-        $proc->run();
 
     steps:
       ## run test package is able to install
       - run: mkdir /tmp/install-test && cd /tmp/install-test
       - run: composer require takuya/process
       - run: echo << parameters.sample_php_src >> > run.php
-      - run: php run.php
+      - run:
+          shell: /usr/local/bin/php
+          command: |
+            <?php
+            use SystemUtil\Process;
+            require_once './vendor/autoload.php';
+            $proc = new Process(['echo', 'HelloWorld']);
+            $proc->run();
       #      - checkout
       #
       #      # Download and cache dependencies

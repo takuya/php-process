@@ -15,14 +15,12 @@ jobs:
       - image: circleci/php:7.4.3-cli
     steps:
       - checkout
-
-      # Download and cache dependencies
-      - run: sudo apt update
-
       - run:
           shell: /bin/bash
           command: |
+            # Download and cache dependencies
             ## prepare test for ssh
+            sudo apt update
             sudo apt install -y --no-install-recommends openssh-server openssh-client
             sudo /etc/init.d/ssh start
             ## prepare ssh login
@@ -31,7 +29,6 @@ jobs:
             cat /home/circleci/.ssh/id_rsa.pub > /home/circleci/.ssh/authorized_keys
             touch ~/.ssh/known_hosts && rm ~/.ssh/known_hosts
             ssh-keyscan -t rsa,dsa localhost  2>/dev/null > ~/.ssh/known_hosts
-            ssh-keyscan -t rsa,dsa 127.0.0.1  2>/dev/null > ~/.ssh/known_hosts
             ssh localhost date
             ## prepare phpunit
             composer install -n --prefer-dist
@@ -41,7 +38,7 @@ jobs:
             ##  test packagist installation
             mkdir /tmp/install-test
             cd /tmp/install-test
-
+            ##
             echo "<?php
                use SystemUtil\Process;
                require_once './vendor/autoload.php';

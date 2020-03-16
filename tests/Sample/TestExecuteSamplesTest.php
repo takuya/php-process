@@ -29,7 +29,7 @@ class TestExecuteSamplesTest extends TestCase {
       $proc->run();
       if( ! $proc->getExitStatusCode() == 0 ) {
         var_dump([$proc->getExitStatusCode(), $f_name]);
-        var_dump([$proc->getCurrentProcess(), stream_get_contents($proc->getOutput()), stream_get_contents($proc->getErrout())]);exit;
+      //   var_dump([$proc->getCurrentProcess(), stream_get_contents($proc->getOutput()), stream_get_contents($proc->getErrout())]);exit;
       }
       $this->assertEquals(0, $proc->getExitStatusCode());
     }

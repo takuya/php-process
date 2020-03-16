@@ -5,10 +5,9 @@
 version: 2
 workflows:
   version: 2
-  test_and_installTest:
+  test_and_installationt:
     jobs:
       - test
-      - install
 jobs:
   test:
     docker:
@@ -16,46 +15,44 @@ jobs:
       - image: circleci/php:7.4.3-cli
     steps:
       - checkout
+      - run:
+          shell: /bin/bash
+          command: |
+            # Download and cache dependencies.
+            sudo apt update
+            ## prepare test for ssh
+            sudo apt install -y --no-install-recommends openssh-server openssh-client
+            sudo /etc/init.d/ssh start
+            ## prepare ssh login.
+            ls ~/.ssh && rm -rf ~/.ssh
+            ssh-keygen  -t rsa  -N "" -f ~/.ssh/id_rsa
+            cat /home/circleci/.ssh/id_rsa.pub > /home/circleci/.ssh/authorized_keys
+            touch ~/.ssh/known_hosts && rm ~/.ssh/known_hosts
+            ssh-keyscan -t rsa,dsa localhost  2>/dev/null > ~/.ssh/known_hosts
+            ssh localhost date
+            ## prepare for phpunit
+            cd ~/project  && composer install -n --prefer-dist
+            ##  prepare for  packagist installation test.
+            mkdir /tmp/install-test
+            cd /tmp/install-test
+            composer require takuya/process
+            ##
+            echo '<?php
+               use SystemUtil\Process;
+               require_once "./vendor/autoload.php";
+               $proc = new Process(["echo", "HelloWorld"]);
+               $proc->run();'  > run.php
+            ## test
+            cd /tmp/install-test &&
+            /usr/local/bin/php run.php &&
+            cd ~/project  &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Sample &&
+            echo done;
 
-      # Download and cache dependencies
-      - run: sudo apt update
-
-      ## prepare test for ssh
-      - run: sudo apt install -y --no-install-recommends openssh-server openssh-client
-      - run: sudo /etc/init.d/ssh start
-      ## prepare ssh login
-      - run: ls ~/.ssh && rm -rf ~/.ssh
-      - run: ssh-keygen  -t rsa  -N "" -f ~/.ssh/id_rsa
-      - run: cat /home/circleci/.ssh/id_rsa.pub > /home/circleci/.ssh/authorized_keys
-      - run: touch ~/.ssh/known_hosts && rm ~/.ssh/known_hosts
-      - run: ssh-keyscan -t rsa,dsa localhost  2>/dev/null > ~/.ssh/known_hosts
-      - run: ssh localhost date
-
-      ## prepare phpunit
-      - run: composer install -n --prefer-dist
 
       # run tests with phpunit or codecept
-      - run: ./vendor/bin/phpunit --testsuite Units
-      - run: ./vendor/bin/phpunit --testsuite Feature
-      - run: ./vendor/bin/phpunit --testsuite Sample
       # - run: ./vendor/bin/codecept build
       # - run: ./vendor/bin/codecept run
-
-  install:
-    docker:
-      # Specify the version you desire here
-      - image: circleci/php:7.4.3-cli
-    steps:
-      ## run test package is able to install
-      - run: mkdir /tmp/install-test && cd /tmp/install-test
-      - run: cd /tmp/install-test && composer require takuya/process
-      - run:
-          shell: /usr/local/bin/php
-          command: |
-            <?php
-            use SystemUtil\Process;
-            require_once './vendor/autoload.php';
-            $proc = new Process(['echo', 'HelloWorld']);
-            $proc->run();
-
 

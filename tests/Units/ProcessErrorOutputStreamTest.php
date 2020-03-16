@@ -98,10 +98,11 @@ class ProcessErrorOutputStreamTest extends TestCase {
   }
   
   public function testErrorOutputStreamIsBuffered_10Mbytes() {
+    // very slow. why.
     $size = 1024*1024*10;
     $proc = new Process('php');
     $proc->setInput(sprintf('<?php $fd=fopen("php://stderr","w+");
-      for( $i=0;$i<%d;$i++ ){ fwrite($fd, 1); fflush($fd);};
+      for( $i=0;$i<%d;$i++ ){ fwrite($fd, 1);};
       fflush($fd);
       fclose($fd);',$size));
     $proc->setErrout($fd = fopen('php://temp', 'w'));

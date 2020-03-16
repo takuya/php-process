@@ -607,7 +607,7 @@ class Process {
     // stdout/stderr map to php://temp for use fseek
     if( $this->getOutput() == null ) {
       $fd_out = $this->getTempFd($this->use_memory);
-      if( ! $this->current_process->stat['signaled'] ) {
+      if( ! $this->canceled() ) {
         stream_copy_to_stream($pipes[1], $fd_out);
         rewind($fd_out);
       } else {
@@ -619,7 +619,7 @@ class Process {
     }
     if( $this->getErrout() == null ) {
       $fd_err = $this->getTempFd($this->use_memory);
-      if( ! $this->current_process->stat['signaled'] ) {
+      if( ! $this->canceled() ) {
         stream_copy_to_stream($pipes[2], $fd_err);
         rewind($fd_err);
       } else {

@@ -36,17 +36,17 @@ jobs:
       # - run: ./vendor/bin/codecept build
       # - run: ./vendor/bin/codecept run
 
-      ## run test package is able to install
-      - run: mkdir /tmp/install-test && cd /tmp/install-test
-      - run: cd /tmp/install-test && composer require takuya/process
-      - run:
-          shell: /usr/local/bin/php
-          command: |
-            <?php
-            use SystemUtil\Process;
-            require_once './vendor/autoload.php';
-            $proc = new Process(['echo', 'HelloWorld']);
-            $proc->run();
-
+  install:
+    ## run test package is able to install
+    - run: mkdir /tmp/install-test && cd /tmp/install-test
+    - run: cd /tmp/install-test && composer require takuya/process
+    - run:
+        shell: /usr/local/bin/php
+        command: |
+          <?php
+          use SystemUtil\Process;
+          require_once './vendor/autoload.php';
+          $proc = new Process(['echo', 'HelloWorld']);
+          $proc->run();
 
 

@@ -4,6 +4,7 @@ namespace Tests\Units\Callbacks;
 
 use Tests\TestCase;
 use SystemUtil\Process;
+use ReflectionFunction;
 
 class ProcessOnErrorCallBackTest extends TestCase {
   
@@ -17,23 +18,23 @@ class ProcessOnErrorCallBackTest extends TestCase {
       });
     $proc->run();
   }
+  
   public function testUseErrorCallbackSetterGetter() {
     
     $proc = new Process('echo');
-    
     $default_func = $proc->getOnError();
-    $default_func_ref = new  \ReflectionFunction($default_func);
+    $default_func_ref = new  ReflectionFunction($default_func);
     $this->assertEquals(true, $default_func_ref->isClosure());
     $this->assertEquals(2, sizeof($default_func_ref->getParameters()));
     $this->assertEquals($proc, $default_func_ref->getClosureThis());
     //
-    $func = function(){};
+    $func = function () { };
     $proc->setOnSuccess($func);
     $this->assertEquals($func, $proc->getOnError());
   }
   
   public function testUseErrorCallbackCheckFunctionArgumentType() {
-  
+    
     $proc = new Process('php');
     $proc->setInput('<?php exit(1);');
     $proc->setOnError(
@@ -45,12 +46,11 @@ class ProcessOnErrorCallBackTest extends TestCase {
         $this->assertArrayHasKey('running', $stat);
         $this->assertArrayHasKey('signaled', $stat);
       });
-
     $proc->run();
   }
   
   public function testUseErrorCallbackCheckPassedArgumentContent() {
-  
+    
     $proc = new Process('php');
     $proc->setInput('<?php echo "Hello World\n"; exit(1);');
     $proc->setOnError(

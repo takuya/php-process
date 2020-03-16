@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Process;
 
+use Exception;
 use Tests\TestCase;
 use SystemUtil\Process;
 
@@ -12,7 +13,7 @@ class ProcessExectuteOutputTest extends TestCase {
    */
   public function testOutputRedirectToUWritableFile() {
     
-    $this->expectException(\Exception::class);
+    $this->expectException(Exception::class);
     $output = "/a";
     $proc = new Process('date');
     $proc->setOutput($output);
@@ -24,7 +25,7 @@ class ProcessExectuteOutputTest extends TestCase {
    */
   public function testOutputRedirectToFile() {
     $output = "/tmp/test";
-    $proc = new Process(['echo','Hello']);
+    $proc = new Process(['echo', 'Hello']);
     $proc->setOutput($output);
     $proc->run();
     $str = file_get_contents($output);
@@ -37,7 +38,7 @@ class ProcessExectuteOutputTest extends TestCase {
    */
   public function testOutputRedirectToFd() {
     $fout = fopen('php://temp', 'w+');
-    $proc = new Process(['echo','Hello']);
+    $proc = new Process(['echo', 'Hello']);
     $proc->setOutput($fout);
     $proc->run();
     rewind($fout);
@@ -49,7 +50,7 @@ class ProcessExectuteOutputTest extends TestCase {
    * redirect stdout to php://temp (default)
    */
   public function testOutputRedirectToDefault() {
-    $proc = new Process(['echo','Hello']);
+    $proc = new Process(['echo', 'Hello']);
     $ret = $proc->run();
     $str = stream_get_contents($ret[1]);
     $this->assertRegExp("/hello/i", $str);
@@ -59,7 +60,7 @@ class ProcessExectuteOutputTest extends TestCase {
    * redirect stdout to php://temp (default)
    */
   public function testOutputRedirectToDefault2() {
-    $proc = new Process(['echo','Hello']);
+    $proc = new Process(['echo', 'Hello']);
     $ret = $proc->run();
     $str = stream_get_contents($proc->getOutput());
     $this->assertRegExp("/hello/i", $str);

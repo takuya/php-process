@@ -3,6 +3,7 @@
 namespace SystemUtil;
 
 use Closure;
+use phpDocumentor\Reflection\Types\This;
 
 /**
  * Class Process
@@ -14,6 +15,10 @@ use Closure;
  */
 class Process {
   
+  /**
+   * @var int microsecond.
+   */
+  protected $wait_time = 1000;
   /**
    * @var \Closure
    */
@@ -66,6 +71,11 @@ class Process {
    * @var object
    */
   private $current_process;
+  /**
+   * @var array
+   */
+  
+  private $pipe_changed = [];
   
   /**
    * Process constructor.
@@ -125,6 +135,15 @@ class Process {
    */
   public function canceled():bool{
     return $this->current_process->stat['signaled'];
+  }
+  protected function getPipe(int $i){
+    return $this->current_process->pipes[$i];
+  }
+  protected function getBufferedPipe(int $i){
+    if ( empty($this->current_process->buffered_pipes[$i])){
+      return null;
+    }
+    return $this->current_process->buffered_pipes[$i];
   }
   
   /**
@@ -193,7 +212,7 @@ class Process {
    */
   protected function start_process() {
     $descriptor = [
-      0 => $this->getInput() ?: ['pipe', 'r'],
+      0 => $this->getInput()  ?: ['pipe', 'r'],
       1 => $this->getOutput() ?: ['pipe', 'w'],
       2 => $this->getErrout() ?: ['pipe', 'w'],
     ];
@@ -230,8 +249,7 @@ class Process {
       $this->input = $input;
     } else {
       if( is_string($input) ) {
-        if( ! preg_match('#[\n\*\<\>\|:\t\?]#', $input) // chars prohibited using in filename
-            && preg_match('#(?<!\\\)(/|\\\)#', $input) ) {
+        if( $this->isFileNameString($input) ) {
           $this->input = ['file', $input, 'r'];
         } else {
           $fd_in = fopen('php://temp', 'w+');
@@ -246,12 +264,32 @@ class Process {
   }
   
   /**
+   * @param $input
+   * @return bool
+   */
+  private function isFileNameString( $input ):bool {
+    return ! preg_match('#[\n\*\<\>\|:\t\?]#', $input) // Not Contain chars prohibited in filename
+           && preg_match('#(?<!\\\)(/|\\\)#', $input); // contain directory separator.
+  }
+  
+  
+  /**
    * Get process Output as Stream.
    * @return resource
    */
   public function getOutput() {
-    if( ! $this->output && $this->current_process->proc && $this->current_process->stat['exitcode'] == 0 ) {
-      $raw = $this->current_process->pipes[1];
+    if ( $this->isNotStarted()){
+      return $this->output;
+    }
+    if ( $this->output === null && $this->getBufferedPipe(1)  && $this->isSuccessful() ){
+      $this->output = $this->getBufferedPipe(1);
+      rewind($this->output);
+      return $this->output;
+    
+    }
+    
+    if ( $this->output === null  && $this->isSuccessful() ){
+      $raw = $this->getPipe(1);
       $buff = $this->getTempFd($this->use_memory);
       stream_copy_to_stream($raw, $buff);
       rewind($buff);
@@ -259,12 +297,9 @@ class Process {
       
       return $buff;
     }
-    if( $this->output && is_resource($this->output) && $this->current_process->proc
-        && $this->current_process->stat['exitcode'] == 0 ) {
-      $meta = stream_get_meta_data($this->output);
-      if( $meta['seekable'] == true ) {
+    
+    if( $this->output && $this->isSuccessful()  && stream_get_meta_data($this->output)['seekable']) {
         fseek($this->output, 0);
-      }
     }
     
     return $this->output;
@@ -301,11 +336,7 @@ class Process {
    * @return bool|resource
    */
   private function getTempFd( $use_memory = true ) {
-    if( $use_memory ) {
-      return fopen('php://memory', 'w+');
-    } else {
-      return fopen('php://temp', 'w+');
-    }
+    return fopen($use_memory? 'php://memory':'php://temp', 'w+');
   }
   
   /**
@@ -313,8 +344,12 @@ class Process {
    * @return resource  resource
    */
   public function getErrout() {
-    if( ! $this->errout && $this->current_process->proc && $this->current_process->stat['exitcode'] == 0 ) {
-      $raw = $this->current_process->pipes[2];
+    if ( $this->isNotStarted()){
+      return $this->errout;
+    }
+  
+    if ( $this->errout === null  && $this->isSuccessful() ){
+      $raw = $this->getPipe(2);
       $buff = $this->getTempFd($this->use_memory);
       stream_copy_to_stream($raw, $buff);
       rewind($buff);
@@ -322,8 +357,7 @@ class Process {
       
       return $buff;
     }
-    if( $this->errout && is_resource($this->errout) && $this->current_process->proc
-        && $this->current_process->stat['exitcode'] == 0 ) {
+    if ( $this->errout !== null  && $this->isSuccessful() ){
       $meta = stream_get_meta_data($this->errout);
       if( $meta['seekable'] == true ) {
         fseek($this->errout, 0);
@@ -413,12 +447,12 @@ class Process {
     // wating
     while($this->isRunning()) {
       $this->handleEvent('OnWait');
-      usleep(1000*1);
+      usleep($this->wait_time);
       $this->checkTimeout();
     }
     $this->handleEvent('OnFinish');
     
-    if( $this->getExitStatusCode() > 0 || $this->canceled() ) {
+    if( !$this->isSuccessful() || $this->canceled() ) {
       $this->handleEvent('OnError');
       proc_close($this->current_process->proc);
       $this->handleEvent('OnProcClosed');
@@ -460,17 +494,6 @@ class Process {
   }
   
   /**
-   *
-   */
-  protected function handleOnStart() {
-    if( $this->getInput() == null ) {
-      // Avoid to read blocking pipes[0] must be closed. this function is ensure.
-      $callback__func_on_start = $this->getInputFdCloseCallback();
-      $callback__func_on_start($this->current_process->pipes);
-    }
-  }
-  
-  /**
    * @return \Closure
    */
   protected function getInputFdCloseCallback() {
@@ -490,7 +513,94 @@ class Process {
   /**
    *
    */
+  protected function handleOnStart() {
+    if( $this->getInput() == null ) {
+      // Avoid to read blocking pipes[0] must be closed. this function is ensure.
+      $callback__func_on_start = $this->getInputFdCloseCallback();
+      $callback__func_on_start($this->current_process->pipes);
+    }
+    
+    $this->registerPipeChangedChecker();
+  }
+  protected function registerPipeChangedChecker() {
+    $checker_generator = function () {
+      $last_mtime = null; // bind mtime  in closure.
+      $check_output = function ($fd) use ( &$last_mtime ) {
+        if( $last_mtime == fstat($fd)['mtime'] ) {
+          return false;
+        }
+        $last_mtime = fstat($fd)['mtime'];
+        return true;
+      };
+      return $check_output;
+    };
+    // register callback and checker
+    foreach ( $this->pipe_changed as $idx => $item) {
+      $this->current_process->buffered_pipes[$idx] =  $this->pipe_changed[$idx]['buffered'] ?  $this->getTempFd($this->use_memory):null;
+      $this->pipe_changed[$idx]['checker'] = $checker_generator();
+      stream_set_blocking($this->getPipe($idx), $this->pipe_changed[$idx]['blocking']);
+    }
+  }
+  protected function checkPipeUpdated(int $i){
+    $checker = $this->pipe_changed[$i]['checker'];
+    return $checker($this->getPipe($i));
+    
+  }
+  protected function checkOutputHasChanged(){
+    return $this->checkPipeUpdated(1);
+  }
+  // protected function checkErrOutHasChanged(){
+  //   return ($this->function_check_pipe2_function)();
+  // }
+  public function setOnOutputChanged( $function_on_change, $opt = ['blocking'=>true, 'buffered'=>true] ){
+    if ( empty($this->pipe_changed[1]) ){
+      $this->pipe_changed[1] = [
+        'callback'=> null,
+        'checker' => null,
+        'blocking' => true,
+        'buffered' => true,
+      ];
+      $this->pipe_changed[1]['callback'] = null;
+    }
+    $this->pipe_changed[1]['callback'] = $function_on_change;
+    $this->pipe_changed[1]['blocking'] = $opt['blocking']??true;
+    $this->pipe_changed[1]['buffered'] = $opt['buffered']??true;
+  }
+  
+  protected function getOnOutputChanged():?Closure{
+    if ( empty($this->pipe_changed[1])  ){
+      return null;
+    }
+    return $this->pipe_changed[1]['callback'];
+  }
+  // public function setOnErroutChanged( $function_on_change ){
+  //   $this->function_on_pipe2_changed = $function_on_change;
+  // }
+  // protected function getOnErroutChanged(){
+  //   return $this->function_on_pipe2_changed;
+  // }
+  protected function checkProcessPipesHasUpdated(){
+    if ( $this->getOnOutputChanged() && $this->checkOutputHasChanged() ){
+      $this->handleOnOutputChanged();
+    }
+    // if ( $this->getOnErroutChanged() && $this->checkErrOutHasChanged() ){
+    //   $str = fread($this->current_process->pipes[2], 1024);
+    //   ($this->getOnErroutChanged())($str);
+    // }
+  }
+  protected function handleOnOutputChanged(){
+    $str = fread($this->current_process->pipes[1], 1024);
+    fwrite($this->getBufferedPipe(1), $str);
+    $callback = $this->getOnOutputChanged();
+    $callback($str);
+  }
+  /**
+   *
+   */
   protected function handleOnWait() {
+  
+    $this->checkProcessPipesHasUpdated();
+    
     $callback_on_every_waiting = $this->getOnWaiting();
     $callback_on_every_waiting(
       $this->current_process->stat,
@@ -598,6 +708,15 @@ class Process {
    */
   protected function handleOnFinish() {
     // override pipe(out/err) to 'php://tempfile'.
+    if (  !empty($this->pipe_changed[1]) ){
+      if ( $this->pipe_changed[1]['buffered'] ) {
+        while( !feof( $this->getPipe(1)) ){ fwrite($this->getBufferedPipe(1), fread($this->getPipe(1), 1024)); }
+      }else{
+        // ensure read all
+        $this->handleOnOutputChanged();
+      }
+    }
+  
     $this->current_process->buffered_pipes = $this->mapPipeToTemp($this->current_process->pipes);
   }
   
@@ -606,32 +725,23 @@ class Process {
    * @return array array of string [in,out,err]
    */
   protected function mapPipeToTemp( $pipes ):array {
-    
-    // stdout/stderr map to php://temp for use fseek
-    if( $this->getOutput() == null ) {
-      $fd_out = $this->getTempFd($this->use_memory);
-      if( ! $this->canceled() ) {
-        stream_copy_to_stream($pipes[1], $fd_out);
-        rewind($fd_out);
-      } else {
-        // no eof. when canceled. read remain chars in pipe.
-        $bytes_unread = stream_get_meta_data($pipes[1])['unread_bytes'];
-        $bytes_unread > 0 ? fwrite($fd_out, fread($pipes[1], $bytes_unread)) : null;
+  
+    $copy_stream = function($fd_from, $fd_to ){
+
+      if ( !$this->canceled() ){
+        stream_copy_to_stream($fd_from, $fd_to );
+      }else
+        {
+        // If forked child has forked child, Canceled has no no eof available in linux.
+        // Read remained chars from pipe.
+        $bytes_unread = stream_get_meta_data($fd_from)['unread_bytes'];
+        $bytes_unread > 0 ? fwrite($fd_to, fread($fd_from, $bytes_unread)) : null;
       }
-      $this->output = $fd_out;
-    }
-    if( $this->getErrout() == null ) {
-      $fd_err = $this->getTempFd($this->use_memory);
-      if( ! $this->canceled() ) {
-        stream_copy_to_stream($pipes[2], $fd_err);
-        rewind($fd_err);
-      } else {
-        // no eof. when canceled.
-        $bytes_unread = stream_get_meta_data($pipes[2])['unread_bytes'];
-        $bytes_unread > 0 ? fwrite($fd_out, fread($pipes[2], $bytes_unread)) : null;
-      }
-      $this->errout = $fd_err;
-    }
+      rewind($fd_to);
+    };
+  
+    $this->getOutput() ?:  $copy_stream( $pipes[1], $this->output = $this->getTempFd($this->use_memory) );
+    $this->getErrout() ?:  $copy_stream( $pipes[2], $this->errout = $this->getTempFd($this->use_memory) );
     
     return [$pipes[0] ?? null, $this->output ?? null, $this->errout ?? null];
   }
@@ -642,24 +752,26 @@ class Process {
    */
   public function isRunning() {
     $proc_struct = $this->current_process;
-    if( $proc_struct->stat && $proc_struct->stat['running'] ) {
+    if ( $this->isNotStarted() ){
+      return false;
+    }
+    // update status when running.
+    if( $this->isStarted() && $this->isNotFinished() && $this->isNotProcessClosed() ) {
+      // Call proc_get_status() on to finished $proc that lost real [exit_code] and get only '-1'.
+      // Stay conscious of number and times proc_get_status() called.
+      // Be Carefully to call proc_get_status() to avoid lost [exit_code].
       $proc_struct->stat = proc_get_status($proc_struct->proc);
     }
-    
-    // Call proc_get_status() on to finished $proc that lost real [exit_code] and get only '-1'.
-    // Stay conscious of number and times proc_get_status() called.
-    // Be Carefully to call proc_get_status() to avoid lost [exit_code].
-    return $proc_struct->proc
-           && preg_match('/process/i', get_resource_type($proc_struct->proc))
-           && $this->current_process->stat['running'];
+    // return last running status, proc_get_status() called.
+    return $this->current_process->stat['running'];
   }
   
   /**
    * Check Process finished Successfully.
    * @return bool
    */
-  public function isSucessful(){
-    return !$this->isRunning() &&  $this->getExitStatusCode() === 0 ;
+  public function isSuccessful(){
+    return ($this->isFinished() || $this->isProcessClosed() ) &&  $this->getExitStatusCode() === 0 ;
   }
   
   /**
@@ -669,7 +781,7 @@ class Process {
    * @return  bool
    */
   protected function isError(){
-    return !$this->isRunning() &&  $this->getExitStatusCode() >0 ;
+    return ($this->isFinished() || $this->isProcessClosed() ) &&  $this->getExitStatusCode() > 0 ;
   }
   /**
    * This method made for readable code.
@@ -682,6 +794,64 @@ class Process {
   }
   
   /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isStarted(){
+    return is_resource($this->current_process->proc) == true
+          &&  $this->current_process->start_time !== null;
+  }
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isNotStarted(){
+    return !$this->isStarted();
+  }
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isFinished(){
+    return $this->isStarted()
+     && $this->current_process->stat['running'] == false;
+  }
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isNotFinished(){
+    return  !$this->isFinished();
+  }
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isProcessClosed(){
+    return is_resource($this->current_process->proc) == false
+           && get_resource_type($this->current_process->proc) == 'Unknown';
+  }
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isNotProcessClosed(){
+    return ! $this->isProcessClosed();
+  }
+  
+  /**
    * Check execution time. and kill long execution.
    */
   protected function checkTimeout():void {
@@ -689,7 +859,7 @@ class Process {
       return;
     }
     $proc_struct = $this->current_process;
-    if( !$this->isRunning() ) {
+    if( $this->isNotRunning() ) {
       return;
     }
     if( microtime(true) > $this->getTimeout() + $proc_struct->start_time ) {
@@ -715,15 +885,15 @@ class Process {
   public function signal( int $signal ) {
     //
     $proc_struct = $this->current_process;
-    if( ! $this->isRunning() ) {
+    if(  $this->isNotRunning() ) {
       return;
     }
     proc_terminate($proc_struct->proc, $signal);
     usleep(100); // for linux. pass threading context.wait for signal sent.
     // for sure.
-    // retry when proc is stile alive.
+    // retry if proc is stile alive.
     foreach (range(0, 10) as $idx) {
-      if( ! $this->isRunning() ) {
+      if( $this->isNotRunning() ) {
         break;
       }
       proc_terminate($proc_struct->proc, $signal);
@@ -768,8 +938,8 @@ class Process {
     }
     
     return [
-      $this->getOutput() ?: $this->current_process->pipes[1],
-      $this->getErrout() ?: $this->current_process->pipes[2],
+      $this->getOutput() ?: $this->getPipe(1),
+      $this->getErrout() ?: $this->getPipe(2),
     ];
   }
   
@@ -805,6 +975,20 @@ class Process {
   public function setOnWaiting( $on_executing ):Process {
     $this->on_executing = $on_executing;
     return $this;
+  }
+  // TODO::
+  // /**
+  //  * Unset Listener
+  //  */
+  // public function removeOnWaiting() {
+  //   $this->on_executing = null;
+  // }
+  
+  public function setWaitTime(int $microseconds){
+    $this->wait_time = $microseconds;
+  }
+  public function getWaitTime(){
+    return $this->wait_time;
   }
   
   /**

@@ -2,6 +2,7 @@
 
 namespace Tests\Feature\Process;
 
+use Exception;
 use Tests\TestCase;
 use SystemUtil\Process;
 
@@ -12,7 +13,7 @@ class ProcessExectuteInputTest extends TestCase {
    */
   public function testOutputRedirectToUnWritableFile() {
     
-    $this->expectException(\Exception::class);
+    $this->expectException(Exception::class);
     $fname = "/etc/shadow";
     if( preg_match('/darwin/i', PHP_OS) ) {
       $fname = "/var/root/Downloads/a";

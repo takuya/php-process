@@ -28,8 +28,8 @@
             <directory suffix="Test.php">./tests/Feature</directory>
         </testsuite>
 
-        <testsuite name="Sample">
-            <directory suffix="Test.php">./tests/Sample</directory>
+        <testsuite name="SampleCode">
+            <directory suffix="Test.php">./tests/SampleCode</directory>
         </testsuite>
     </testsuites>
 

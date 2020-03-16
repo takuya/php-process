@@ -37,10 +37,13 @@ class ProcessErrorOutputStreamTest extends TestCase {
   public function testErrorOutputStreamIsBuffered_1Kbytes() {
     $size = 1024;
     $proc = new Process('php');
-    $proc->setInput(sprintf('<?php $fd=fopen("php://stderr","w+");
+    $proc->setInput(
+      sprintf(
+        '<?php $fd=fopen("php://stderr","w+");
       for( $i=0;$i<%d;$i++ ){ fwrite($fd, 1); };
       fflush($fd);
-      fclose($fd);',$size));
+      fclose($fd);',
+        $size));
     $proc->run();
     $fd = $proc->getErrout();
     fseek($fd, $size);
@@ -53,10 +56,13 @@ class ProcessErrorOutputStreamTest extends TestCase {
   public function testErrorOutputStreamIsBuffered_64Kbytes() {
     $size = 1024*64;
     $proc = new Process('php');
-    $proc->setInput(sprintf('<?php $fd=fopen("php://stderr","w+");
+    $proc->setInput(
+      sprintf(
+        '<?php $fd=fopen("php://stderr","w+");
       for( $i=0;$i<%d;$i++ ){ fwrite($fd, 1); };
       fflush($fd);
-      fclose($fd);',$size));
+      fclose($fd);',
+        $size));
     $proc->run();
     $fd = $proc->getErrout();
     fseek($fd, $size);
@@ -70,23 +76,29 @@ class ProcessErrorOutputStreamTest extends TestCase {
     $size = 256*256 + 1;
     // more than 256*256+1 will freeze.
     $proc = new Process('php');
-    $proc->setInput(sprintf('<?php $fd=fopen("php://stderr","w+");
+    $proc->setInput(
+      sprintf(
+        '<?php $fd=fopen("php://stderr","w+");
       for( $i=0;$i<%d;$i++ ){ fwrite($fd, 1); };
       fflush($fd);
-      fclose($fd);',$size));
+      fclose($fd);',
+        $size));
     $proc->setTimeout(1);
     $proc->run();
     $is_canceld = $proc->canceled();
     $this->assertEquals(true, $is_canceld);
   }
   
-  public function testErrorOutputStreamIsBuffered_1Mbytes() {
-    $size = 1024*1024;
+  public function testErrorOutputStreamIsBuffered_100Kbytes() {
+    $size = 1024*100;
     $proc = new Process('php');
-    $proc->setInput(sprintf('<?php $fd=fopen("php://stderr","w+");
+    $proc->setInput(
+      sprintf(
+        '<?php $fd=fopen("php://stderr","w+");
       for( $i=0;$i<%d;$i++ ){ fwrite($fd, 1); };
       fflush($fd);
-      fclose($fd);',$size));
+      fclose($fd);',
+        $size));
     $proc->setErrout($fd = fopen('php://temp', 'w'));
     $proc->run();
     $fd = $proc->getErrout();
@@ -96,23 +108,4 @@ class ProcessErrorOutputStreamTest extends TestCase {
     $this->assertEquals($size, ftell($fd));
     $this->assertEquals(true, feof($fd));
   }
-  
-  public function testErrorOutputStreamIsBuffered_10Mbytes() {
-    // very slow. why.
-    $size = 1024*1024*10;
-    $proc = new Process('php');
-    $proc->setInput(sprintf('<?php $fd=fopen("php://stderr","w+");
-      for( $i=0;$i<%d;$i++ ){ fwrite($fd, 1);};
-      fflush($fd);
-      fclose($fd);',$size));
-    $proc->setErrout($fd = fopen('php://temp', 'w'));
-    $proc->run();
-    $fd = $proc->getErrout();
-    fseek($fd, $size);
-    fread($fd, 1);
-    $this->assertEquals($size, fstat($fd)['size']);
-    $this->assertEquals($size, ftell($fd));
-    $this->assertEquals(true, feof($fd));
-  }
-  
 }

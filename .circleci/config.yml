@@ -19,7 +19,7 @@ jobs:
     steps:
       ## run test package is able to install
       - run: mkdir /tmp/install-test && cd /tmp/install-test
-      - run: composer install takuya/process
+      - run: composer require takuya/process
       - run: echo << parameters.sample_php_src >> > run.php
       - run: php run.php
       #      - checkout

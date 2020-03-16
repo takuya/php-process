@@ -1,12 +1,11 @@
 <?php
 use SystemUtil\Process;
 
-require_once '../../src/Process.php';
+require_once __DIR__.'/../../src/Process.php';
 
 
 $proc = new Process(['sleep','10']);
 $proc->setTimeout(1);
-
 
 $proc->start();
 $proc->wait();

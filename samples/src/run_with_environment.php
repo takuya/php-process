@@ -2,7 +2,7 @@
 
 use SystemUtil\Process;
 
-require_once '../../src/Process.php';
+require_once __DIR__.'/../../src/Process.php';
 
 $proc = new Process('sh',['Hello'=>'World']);
 $proc->setInput('echo $Hello');

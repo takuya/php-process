@@ -3,12 +3,17 @@
 # Check https://circleci.com/docs/2.0/language-php/ for more details
 #
 version: 2
+workflows:
+  version: 2
+  test_and_installTest:
+    jobs:
+      - test
+      - install
 jobs:
-  build:
+  test:
     docker:
       # Specify the version you desire here
       - image: circleci/php:7.4.3-cli
-
     steps:
       - checkout
 
@@ -33,4 +38,22 @@ jobs:
       - run: ./vendor/bin/phpunit
       # - run: ./vendor/bin/codecept build
       # - run: ./vendor/bin/codecept run
+
+  install:
+    docker:
+      # Specify the version you desire here
+      - image: circleci/php:7.4.3-cli
+    steps:
+      ## run test package is able to install
+      - run: mkdir /tmp/install-test && cd /tmp/install-test
+      - run: cd /tmp/install-test && composer require takuya/process
+      - run:
+          shell: /usr/local/bin/php
+          command: |
+            <?php
+            use SystemUtil\Process;
+            require_once './vendor/autoload.php';
+            $proc = new Process(['echo', 'HelloWorld']);
+            $proc->run();
+
 

@@ -4,7 +4,7 @@
 #
 version: 2
 jobs:
-  build:
+  test:
     docker:
       # Specify the version you desire here
       - image: circleci/php:7.4.3-cli

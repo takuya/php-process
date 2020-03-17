@@ -15,6 +15,6 @@ class ProcessSignalTest extends TestCase {
     $proc->signal(15);
     $this->assertEquals(true, $proc->canceled());
     $this->assertEquals(false, $proc->isRunning());
-    $this->assertEquals(false, $proc->isSucessful());
+    $this->assertEquals(false, $proc->isSuccessful());
   }
 }

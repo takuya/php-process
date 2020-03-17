@@ -62,28 +62,8 @@ class ProcessOutputStreamTest extends TestCase {
     $this->assertEquals(true, $is_canceld);
   }
   
-  public function testOutputStreamIsBuffered_1Mbytes() {
-    $size = 1024*1024;
-    $proc = new Process(['head', '-c', $size, '/dev/urandom']);
-    $proc->setOutput($fd = fopen('php://temp', 'w'));
-    $proc->run();
-    $fd = $proc->getOutput();
-    fseek($fd, SEEK_END);
-    $this->assertEquals($size, fstat($fd)['size']);
-  }
-  
-  public function testOutputStreamIsBuffered_10Mbytes() {
-    $size = 1024*1024*10;
-    $proc = new Process(['head', '-c', $size, '/dev/urandom']);
-    $proc->setOutput($fd = fopen('php://temp', 'w'));
-    $proc->run();
-    $fd = $proc->getOutput();
-    fseek($fd, SEEK_END);
-    $this->assertEquals($size, fstat($fd)['size']);
-  }
-  
-  public function testOutputStreamIsBuffered_100Mbytes() {
-    $size = 1024*1024*100;
+  public function testOutputStreamIsBuffered_100bytes() {
+    $size = 1024*100;
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
     $proc->setOutput($fd = fopen('php://temp', 'w'));
     $proc->run();

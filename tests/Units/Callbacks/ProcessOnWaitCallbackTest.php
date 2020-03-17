@@ -75,4 +75,46 @@ class ProcessOnWaitCallbackTest extends TestCase {
     $fd = $proc->getOutput();
     $this->assertEquals(5, strlen(stream_get_contents($fd)));
   }
+  
+  public function testUseOnWaitingCallbackAndBlockBy_fread(){
+    $loop_count = 3;
+    
+    $src = sprintf('<?php
+      foreach( range(0,%s) as $i ){
+        echo "Hello\n";
+        usleep(1);
+      }
+    ', $loop_count-1);
+    $proc = new Process('php');
+    $proc->setInput($src);
+    $count = 0;
+    $proc->setOnWaiting(
+      function ( $stat, $pipes, $proc_res ) use( &$count){
+        fread($pipes[1],1024);// Blocking I/O
+        $count++;
+      });
+    $proc->run();
+    $this->assertEquals($loop_count, $count);
+    
+  }
+  public function testUseOnWaitingCallbackAndTerminateProcessInCallback(){
+    $loop_count = 3;
+    
+    $src = sprintf('<?php
+      foreach( range(0,%s) as $i ){
+        echo "Hello\n";
+        usleep(1);
+      }
+    ', $loop_count-1);
+    $proc = new Process('php');
+    $proc->setInput($src);
+    $count = 0;
+    $proc->setOnWaiting(
+      function ( $stat, $pipes, $proc_res ) use( &$count){
+        $count++;
+        proc_terminate($proc_res);
+      });
+    $proc->run();
+    $this->assertEquals(1, $count);
+  }
 }

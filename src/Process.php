@@ -126,6 +126,12 @@ class Process {
   public function canceled():bool{
     return $this->current_process->stat['signaled'];
   }
+  protected function getPipe(int $i){
+    return $this->current_process->pipes[$i];
+  }
+  protected function getBufferedPipe(int $i){
+    return $this->current_process->buffered_pipes[$i];
+  }
   
   /**
    * Set a timeout for process to limit max execution time.
@@ -250,8 +256,12 @@ class Process {
    * @return resource
    */
   public function getOutput() {
-    if( ! $this->output && $this->current_process->proc && $this->getExitStatusCode() == 0 ) {
-      $raw = $this->current_process->pipes[1];
+    if ( $this->isNotStarted()){
+      return $this->output;
+    }
+    
+    if ( $this->output === null  && $this->isSuccessful() ){
+      $raw = $this->getPipe(1);
       $buff = $this->getTempFd($this->use_memory);
       stream_copy_to_stream($raw, $buff);
       rewind($buff);
@@ -259,12 +269,9 @@ class Process {
       
       return $buff;
     }
-    if( $this->output && is_resource($this->output) && $this->current_process->proc
-        && $this->current_process->stat['exitcode'] == 0 ) {
-      $meta = stream_get_meta_data($this->output);
-      if( $meta['seekable'] == true ) {
+    
+    if( $this->output && $this->isSuccessful()  && stream_get_meta_data($this->output)['seekable']) {
         fseek($this->output, 0);
-      }
     }
     
     return $this->output;
@@ -313,8 +320,12 @@ class Process {
    * @return resource  resource
    */
   public function getErrout() {
-    if( ! $this->errout && $this->current_process->proc && $this->current_process->stat['exitcode'] == 0 ) {
-      $raw = $this->current_process->pipes[2];
+    if ( $this->isNotStarted()){
+      return $this->errout;
+    }
+  
+    if ( $this->errout === null  && $this->isSuccessful() ){
+      $raw = $this->getPipe(2);
       $buff = $this->getTempFd($this->use_memory);
       stream_copy_to_stream($raw, $buff);
       rewind($buff);
@@ -322,8 +333,7 @@ class Process {
       
       return $buff;
     }
-    if( $this->errout && is_resource($this->errout) && $this->current_process->proc
-        && $this->current_process->stat['exitcode'] == 0 ) {
+    if ( $this->errout !== null  && $this->isSuccessful() ){
       $meta = stream_get_meta_data($this->errout);
       if( $meta['seekable'] == true ) {
         fseek($this->errout, 0);
@@ -418,7 +428,7 @@ class Process {
     }
     $this->handleEvent('OnFinish');
     
-    if( $this->getExitStatusCode() > 0 || $this->canceled() ) {
+    if( !$this->isSuccessful() || $this->canceled() ) {
       $this->handleEvent('OnError');
       proc_close($this->current_process->proc);
       $this->handleEvent('OnProcClosed');
@@ -456,17 +466,6 @@ class Process {
         break;
       case 'onfinish':
         $this->handleOnFinish();
-    }
-  }
-  
-  /**
-   *
-   */
-  protected function handleOnStart() {
-    if( $this->getInput() == null ) {
-      // Avoid to read blocking pipes[0] must be closed. this function is ensure.
-      $callback__func_on_start = $this->getInputFdCloseCallback();
-      $callback__func_on_start($this->current_process->pipes);
     }
   }
   
@@ -633,27 +632,26 @@ class Process {
    */
   public function isRunning() {
     $proc_struct = $this->current_process;
-    if ( ! is_resource($proc_struct->proc)  ){
+    if ( $this->isNotStarted() ){
       return false;
     }
-    if( $proc_struct->stat && $proc_struct->stat['running'] ) {
+    // update status when running.
+    if( $this->isStarted() && $this->isNotFinished() && $this->isNotProcessClosed() ) {
+      // Call proc_get_status() on to finished $proc that lost real [exit_code] and get only '-1'.
+      // Stay conscious of number and times proc_get_status() called.
+      // Be Carefully to call proc_get_status() to avoid lost [exit_code].
       $proc_struct->stat = proc_get_status($proc_struct->proc);
     }
-    
-    // Call proc_get_status() on to finished $proc that lost real [exit_code] and get only '-1'.
-    // Stay conscious of number and times proc_get_status() called.
-    // Be Carefully to call proc_get_status() to avoid lost [exit_code].
-    return $proc_struct->proc
-           && preg_match('/process/i', get_resource_type($proc_struct->proc))
-           && $this->current_process->stat['running'];
+    // return last running status, proc_get_status() called.
+    return $this->current_process->stat['running'];
   }
   
   /**
    * Check Process finished Successfully.
    * @return bool
    */
-  public function isSucessful(){
-    return !$this->isRunning() &&  $this->getExitStatusCode() === 0 ;
+  public function isSuccessful(){
+    return ($this->isFinished() || $this->isProcessClosed() ) &&  $this->getExitStatusCode() === 0 ;
   }
   
   /**
@@ -663,7 +661,7 @@ class Process {
    * @return  bool
    */
   protected function isError(){
-    return !$this->isRunning() &&  $this->getExitStatusCode() >0 ;
+    return ($this->isFinished() || $this->isProcessClosed() ) &&  $this->getExitStatusCode() > 0 ;
   }
   /**
    * This method made for readable code.
@@ -673,6 +671,64 @@ class Process {
    */
   protected function isNotRunning(){
     return !$this->isRunning();
+  }
+  
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isStarted(){
+    return is_resource($this->current_process->proc) == true
+          &&  $this->current_process->start_time !== null;
+  }
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isNotStarted(){
+    return !$this->isStarted();
+  }
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isFinished(){
+    return $this->isStarted()
+     && $this->current_process->stat['running'] == false;
+  }
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isNotFinished(){
+    return  !$this->isFinished();
+  }
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isProcessClosed(){
+    return is_resource($this->current_process->proc) == false
+           && get_resource_type($this->current_process->proc) == 'Unknown';
+  }
+  /**
+   * This method made for readable code.
+   * return the process is exit_code > 0;
+   * process not started.(exit_code= -1 or null then return false ;
+   * @return  bool
+   */
+  protected function isNotProcessClosed(){
+    return ! $this->isProcessClosed();
   }
   
   /**
@@ -762,8 +818,8 @@ class Process {
     }
     
     return [
-      $this->getOutput() ?: $this->current_process->pipes[1],
-      $this->getErrout() ?: $this->current_process->pipes[2],
+      $this->getOutput() ?: $this->getPipe(1),
+      $this->getErrout() ?: $this->getPipe(2),
     ];
   }
   

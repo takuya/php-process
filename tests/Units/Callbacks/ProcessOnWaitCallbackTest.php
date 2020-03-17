@@ -117,4 +117,26 @@ class ProcessOnWaitCallbackTest extends TestCase {
     $proc->run();
     $this->assertEquals(1, $count);
   }
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
 }

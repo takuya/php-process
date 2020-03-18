@@ -665,19 +665,6 @@ class Process {
       }
       stream_get_meta_data($out)['seekable'] && rewind($out);
     }
-    // if ( $out === null && $this->getBufferedPipe($i)  && $this->isFinished() ){
-    //   $fd = $this->getBufferedPipe($i);
-    //   rewind($fd);
-    //   return $fd;
-    // }
-    //
-    // if ( $out === null  && ! $this->getBufferedPipe($i) && $this->isFinished() ){
-    //   return $buff;
-    // }
-    //
-    // if( $out && $this->isFinished()  && stream_get_meta_data($out)['seekable']) {
-    //   fseek($out, 0);
-    // }
     return $out;
   
   }

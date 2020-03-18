@@ -113,4 +113,32 @@ class ProcessExectutePipeTest extends TestCase {
     $str = trim($str);
     $this->assertEquals("HelloWorld", $str);
   }
+  public function testErrorCommandPipe() {// TODO::
+    $str = '
+    echo Hello
+    echo HelloWorld
+    echo Hello Sample
+    ';
+    $proc1 = new Process('sh');
+    $proc1->setInput($str);
+    $out = $proc1->pipe('cat')->pipe(['grep', 'HelloWorld'])->wait();
+    $str = stream_get_contents($out);
+    $str = trim($str);
+    $this->assertEquals("HelloWorld", $str);
+  }
+  public function testPipe4timesCat() {
+    $proc = new Process('php');
+    $proc->setInput('<?php echo "Hello World";');
+    $proc
+      ->pipe('cat')
+      ->pipe('cat')
+      ->pipe('cat')
+      ->pipe('cat')
+      ->wait();
+    
+    $fd = $proc->getOutput();
+    $this->assertEquals("Hello World", stream_get_contents($fd));
+    
+  }
+
 }

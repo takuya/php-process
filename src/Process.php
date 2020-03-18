@@ -76,6 +76,10 @@ class Process {
    */
   
   private $pipe_changed = [];
+  /**
+   * @var \SystemUtil\Process
+   */
+  protected $pipedNextProcess;
   
   /**
    * Process constructor.
@@ -88,6 +92,7 @@ class Process {
     $this->env = $env;
     $this->cmd = $cmd;
     $this->current_process = $this->processStruct();
+    $this->setTimeout(5);
   }
   
   /**
@@ -311,6 +316,10 @@ class Process {
    * @return resource  resource
    */
   public function getErrout() {
+    if ( $this->pipedNextProcess ){
+      return $this->pipedNextProcess->getErrout();
+    }
+  
     return $this->getOutStream(2);
   }
   
@@ -653,6 +662,9 @@ class Process {
         $this->current_process->buffered_pipes = $this->mapPipeToTemp($this->current_process->pipes);
         $out = $this->getBufferedPipe($i);
       }
+      if ( is_array($out) && $out[0] =='file' ){
+        $out = fopen($out[1], 'r+');
+      }
       stream_get_meta_data($out)['seekable'] && rewind($out);
     }
     return $out;
@@ -663,6 +675,9 @@ class Process {
    * @return resource
    */
   public function getOutput() {
+    if ( $this->pipedNextProcess ){
+      return $this->pipedNextProcess->getOutput();
+    }
     return $this->getOutStream(1);
   }
   
@@ -701,7 +716,7 @@ class Process {
       rewind($fd_to);
     };
   
-    $buff = [0=> $pipes[0], 1=>$this->output,2=>$this->errout];
+    $buff = [0=> $pipes[0]??null, 1=>$this->output,2=>$this->errout];
     foreach ([1,2] as $i){
       if ( $buff[$i] === null ){
         $buff[$i] = $this->getBufferedPipe($i ) ?? $this->getTempFd($this->use_memory);
@@ -889,6 +904,7 @@ class Process {
     list($out, $err) = $this->start();
     $proc2->setInput($out);
     $proc2->start();
+    $this->pipedNextProcess = $proc2;
     
     return $proc2;
   }

@@ -28,8 +28,10 @@ class TestExecuteSamplesTest extends TestCase {
       
       $proc = new Process([trim(`which php`), $f_name]);
       $proc->run();
-      if( ! $proc->getExitStatusCode() == 0 ) {
-        var_dump([$proc->getExitStatusCode(), $f_name]);
+      if( ! $proc->getExitStatusCode() == 0
+          || preg_match('/Stack trace/', ($err = stream_get_contents($proc->getErrout())))) {
+        var_dump([$proc->getExitStatusCode(), $f_name, $err]);
+        throw new \Exception([$proc->getExitStatusCode(), $f_name, $err]);
         //   var_dump([$proc->getCurrentProcess(), stream_get_contents($proc->getOutput()), stream_get_contents($proc->getErrout())]);exit;
       }
       $this->assertEquals(0, $proc->getExitStatusCode());

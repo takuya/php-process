@@ -134,7 +134,7 @@ class Process {
    * @return bool is process signaled.
    */
   public function canceled():bool{
-    return $this->current_process->stat['signaled'];
+    return $this->isNotRunning() && $this->current_process->stat['signaled'];
   }
   protected function getPipe(int $i){
     return $this->current_process->pipes[$i];

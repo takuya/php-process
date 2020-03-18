@@ -212,7 +212,7 @@ class Process {
    */
   protected function start_process() {
     $descriptor = [
-      0 => $this->getInput() ?: ['pipe', 'r'],
+      0 => $this->getInput()  ?: ['pipe', 'r'],
       1 => $this->getOutput() ?: ['pipe', 'w'],
       2 => $this->getErrout() ?: ['pipe', 'w'],
     ];

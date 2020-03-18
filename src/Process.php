@@ -336,11 +336,7 @@ class Process {
    * @return bool|resource
    */
   private function getTempFd( $use_memory = true ) {
-    if( $use_memory ) {
-      return fopen('php://memory', 'w+');
-    } else {
-      return fopen('php://temp', 'w+');
-    }
+    return fopen($use_memory? 'php://memory':'php://temp', 'w+');
   }
   
   /**

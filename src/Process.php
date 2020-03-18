@@ -627,7 +627,7 @@ class Process {
    */
   protected function handleOnProcClosed() {
     $callback_func_on_proc_closed = $this->getOnProcClosed();
-    $callback_func_on_proc_closed($this->current_process->descriptor[1], $this->current_process->descriptor[2]);
+    $callback_func_on_proc_closed($this->current_process->stat, $this->current_process->buffered_pipes);
   }
   
   /**

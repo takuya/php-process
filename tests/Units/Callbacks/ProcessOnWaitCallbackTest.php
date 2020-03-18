@@ -77,6 +77,8 @@ class ProcessOnWaitCallbackTest extends TestCase {
   }
   
   public function testUseOnWaitingCallbackAndBlockBy_fread(){
+    
+    //TODO:: very unstable test.
     $loop_count = 3;
     
     $src = sprintf('<?php

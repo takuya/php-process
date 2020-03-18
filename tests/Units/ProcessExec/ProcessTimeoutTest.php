@@ -26,8 +26,10 @@ class ProcessTimeoutTest extends TestCase {
   
   public function testCheckLimitTimeExecutionTimeoutWorksFine() {
     $proc = new Process('php');
-    $proc->setInput('<?php usleep(1000);');
-    $proc->setTimeout(1/1000/1000*100);
+    // $proc->setInput('<?php usleep(1000);');
+    $proc->setInput('<?php sleep(1);');
+    // $proc->setTimeout(1/1000/1000*100);
+    $proc->setTimeout(1/100 );
     $proc->run();
     $this->assertEquals(true, $proc->canceled());
   }

@@ -944,13 +944,12 @@ class Process {
     $this->on_executing = $on_executing;
     return $this;
   }
-  // TODO::
-  // /**
-  //  * Unset Listener
-  //  */
-  // public function removeOnWaiting() {
-  //   $this->on_executing = null;
-  // }
+  /**
+   * Unset waiting function
+   */
+  public function removeOnWaiting() {
+    $this->on_executing = null;
+  }
   
   public function setWaitTime(int $microseconds){
     $this->wait_time = $microseconds;

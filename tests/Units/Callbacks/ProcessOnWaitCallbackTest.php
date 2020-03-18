@@ -46,7 +46,7 @@ class ProcessOnWaitCallbackTest extends TestCase {
         $this->assertArrayHasKey('signaled', $stat);
         // for sure to call once.
         usleep(10);
-        $proc->setOnWaiting(function () { });
+        $proc->removeOnWaiting();
       });
     $proc->run();
   }

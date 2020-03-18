@@ -311,26 +311,7 @@ class Process {
    * @return resource  resource
    */
   public function getErrout() {
-    if ( $this->errout === null && $this->getBufferedPipe(2)  && $this->isFinished() ){
-      $fd = $this->getBufferedPipe(2);
-      rewind($fd);
-      return $fd;
-    }
-  
-    if ( $this->errout === null  && ! $this->getBufferedPipe(2) && $this->isFinished() ){
-      $raw = $this->getPipe(2);
-      $buff = $this->getTempFd($this->use_memory);
-      stream_copy_to_stream($raw, $buff);
-      rewind($buff);
-      $this->errout = $buff;
-      return $buff;
-    }
-  
-    if( $this->errout && $this->isFinished()  && stream_get_meta_data($this->errout)['seekable']) {
-      fseek($this->errout, 0);
-    }
-  
-    return $this->errout;
+    return $this->getOutputStream(2);
   }
   
   /**
@@ -646,7 +627,7 @@ class Process {
    */
   protected function handleOnProcClosed() {
     $callback_func_on_proc_closed = $this->getOnProcClosed();
-    $callback_func_on_proc_closed($this->current_process->descriptor[1], $this->current_process->descriptor[2]);
+    $callback_func_on_proc_closed($this->current_process->stat, $this->current_process->buffered_pipes);
   }
   
   /**
@@ -654,44 +635,38 @@ class Process {
    * @return \Closure
    */
   public function getOnProcClosed():Closure {
-    $default = function ( $out, $err ) {
-      if( is_resource($out) && get_resource_type($out) != 'Unknown' ) {
-        rewind($out);
-      }
-      if( is_resource($err) && get_resource_type($err) != 'Unknown' ) {
-        rewind($err);
-      }
-    };
+    $default = function ( $out, $err ) {};
     
     return $this->on_proc_closed ?? $default;
   }
   
+  protected function getIOById( int $i){
+    return ( $i===1 ? $this->output  : (  $i === 2 ? $this->errout : null )  ) ;
+  }
+  protected function getOutputStream( int $i) {
+    $out = $this->getIOById($i);
+    
+    if ($this->isFinished()){
+      $out = $this->getIOById($i) ?? $this->getBufferedPipe($i);
+      if ( $out == null ){
+        // getOutput called without wait().
+        // TODO: use mapToTemp();
+        $raw = $this->getPipe($i);
+        $buff = $this->getTempFd($this->use_memory);
+        stream_copy_to_stream($raw, $buff);
+        $out = $this->current_process->buffered_pipes[$i] = $buff;
+      }
+      stream_get_meta_data($out)['seekable'] && rewind($out);
+    }
+    return $out;
+  
+  }
   /**
    * Get process Output as Stream.
    * @return resource
    */
   public function getOutput() {
-    
-    if ( $this->output === null && $this->getBufferedPipe(1)  && $this->isFinished() ){
-      $fd = $this->getBufferedPipe(1);
-      rewind($fd);
-      return $fd;
-    }
-    
-    if ( $this->output === null  && ! $this->getBufferedPipe(1) && $this->isFinished() ){
-      $raw = $this->getPipe(1);
-      $buff = $this->getTempFd($this->use_memory);
-      stream_copy_to_stream($raw, $buff);
-      rewind($buff);
-      $this->output = $buff;
-      return $buff;
-    }
-    
-    if( $this->output && $this->isFinished()  && stream_get_meta_data($this->output)['seekable']) {
-      fseek($this->output, 0);
-    }
-    
-    return $this->output;
+    return $this->getOutputStream(1);
   }
   
   /**
@@ -707,9 +682,6 @@ class Process {
         $this->handleOnOutputChanged();
       }
     }
-
-    // $bp = [$this,null,null];
-    // $bp[2] = $this->copyPipeStreamToTemp($this->current_process->pipes[2]);
     $this->current_process->buffered_pipes = $this->mapPipeToTemp($this->current_process->pipes);
   }
   /**

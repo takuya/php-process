@@ -272,39 +272,6 @@ class Process {
            && preg_match('#(?<!\\\)(/|\\\)#', $input); // contain directory separator.
   }
   
-  
-  /**
-   * Get process Output as Stream.
-   * @return resource
-   */
-  public function getOutput() {
-    if ( $this->isNotStarted()){
-      return $this->output;
-    }
-    if ( $this->output === null && $this->getBufferedPipe(1)  && $this->isSuccessful() ){
-      $this->output = $this->getBufferedPipe(1);
-      rewind($this->output);
-      return $this->output;
-    
-    }
-    
-    if ( $this->output === null  && $this->isSuccessful() ){
-      $raw = $this->getPipe(1);
-      $buff = $this->getTempFd($this->use_memory);
-      stream_copy_to_stream($raw, $buff);
-      rewind($buff);
-      $this->output = $buff;
-      
-      return $buff;
-    }
-    
-    if( $this->output && $this->isSuccessful()  && stream_get_meta_data($this->output)['seekable']) {
-        fseek($this->output, 0);
-    }
-    
-    return $this->output;
-  }
-  
   /**
    * Set command output.
    * !! notice
@@ -701,6 +668,38 @@ class Process {
     };
     
     return $this->on_proc_closed ?? $default;
+  }
+  
+  /**
+   * Get process Output as Stream.
+   * @return resource
+   */
+  public function getOutput() {
+    if ( $this->isNotStarted()){
+      return $this->output;
+    }
+    if ( $this->output === null && $this->getBufferedPipe(1)  && $this->isSuccessful() ){
+      $this->output = $this->getBufferedPipe(1);
+      rewind($this->output);
+      return $this->output;
+      
+    }
+    
+    if ( $this->output === null  && $this->isSuccessful() ){
+      $raw = $this->getPipe(1);
+      $buff = $this->getTempFd($this->use_memory);
+      stream_copy_to_stream($raw, $buff);
+      rewind($buff);
+      $this->output = $buff;
+      
+      return $buff;
+    }
+    
+    if( $this->output && $this->isSuccessful()  && stream_get_meta_data($this->output)['seekable']) {
+      fseek($this->output, 0);
+    }
+    
+    return $this->output;
   }
   
   /**

@@ -311,7 +311,7 @@ class Process {
    * @return resource  resource
    */
   public function getErrout() {
-    return $this->getOutputStream(2);
+    return $this->getOutStream(2);
   }
   
   /**
@@ -643,18 +643,15 @@ class Process {
   protected function getIOById( int $i){
     return ( $i===1 ? $this->output  : (  $i === 2 ? $this->errout : null )  ) ;
   }
-  protected function getOutputStream( int $i) {
+  protected function getOutStream( int $i) {
     $out = $this->getIOById($i);
     
     if ($this->isFinished()){
       $out = $this->getIOById($i) ?? $this->getBufferedPipe($i);
       if ( $out == null ){
         // getOutput called without wait().
-        // TODO: use mapToTemp();
-        $raw = $this->getPipe($i);
-        $buff = $this->getTempFd($this->use_memory);
-        stream_copy_to_stream($raw, $buff);
-        $out = $this->current_process->buffered_pipes[$i] = $buff;
+        $this->current_process->buffered_pipes = $this->mapPipeToTemp($this->current_process->pipes);
+        $out = $this->getBufferedPipe($i);
       }
       stream_get_meta_data($out)['seekable'] && rewind($out);
     }
@@ -666,7 +663,7 @@ class Process {
    * @return resource
    */
   public function getOutput() {
-    return $this->getOutputStream(1);
+    return $this->getOutStream(1);
   }
   
   /**
@@ -684,28 +681,6 @@ class Process {
     }
     $this->current_process->buffered_pipes = $this->mapPipeToTemp($this->current_process->pipes);
   }
-  /**
-   * @param $pipes
-   * @return array array of string [in,out,err]
-   */
-  protected function copyPipeStreamToTemp( $stream_in ):array {
-    
-    $copy_stream = function($fd_from, $fd_to ){
-      
-      if ( !$this->canceled() ){
-        stream_copy_to_stream($fd_from, $fd_to );
-      }else
-      {
-        // If forked child has forked child, Canceled has no no eof available in linux.
-        // Read remained chars from pipe.
-        $bytes_unread = stream_get_meta_data($fd_from)['unread_bytes'];
-        $bytes_unread > 0 ? fwrite($fd_to, fread($fd_from, $bytes_unread)) : null;
-      }
-      rewind($fd_to);
-    };
-    
-  }
-  
   /**
    * @param $pipes
    * @return array array of string [in,out,err]
@@ -733,11 +708,6 @@ class Process {
         $copy_stream( $pipes[$i],  $buff[$i] );
       }
     }
-    
-    // $this->getOutput() ?:  $copy_stream( $pipes[1], $this->output = $this->getTempFd($this->use_memory) );
-    // $this->getErrout() ?:  $copy_stream( $pipes[2], $this->errout = $this->getTempFd($this->use_memory) );
-    
-    // return [$pipes[0] ?? null, $this->output ?? $buff[1] , $this->errout ?? null];
     return $buff;
   }
   

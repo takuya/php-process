@@ -635,14 +635,7 @@ class Process {
    * @return \Closure
    */
   public function getOnProcClosed():Closure {
-    $default = function ( $out, $err ) {
-      // if( is_resource($out) && get_resource_type($out) != 'Unknown' ) {
-      //   rewind($out);
-      // }
-      // if( is_resource($err) && get_resource_type($err) != 'Unknown' ) {
-      //   rewind($err);
-      // }
-    };
+    $default = function ( $out, $err ) {};
     
     return $this->on_proc_closed ?? $default;
   }

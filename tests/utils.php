@@ -22,6 +22,7 @@ function fstat_c( $res ) {
         'blocks',
       ]
     ));
+  $st2 =get_resource_type($res) != 'stream' ? $st2 : array_merge($st2,stream_get_meta_data($res));
   
   return $st2;
 }

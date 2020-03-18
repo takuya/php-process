@@ -73,7 +73,7 @@ class ProcessExecuteErrorOutputTest extends TestCase {
     $this->assertEquals('HelloError', $err);
   }
   
-  public function testStdinFDStdoutTempStdErrorFDRedirect() {
+    public function testStdinFDStdoutTempStdErrorFDRedirect() {
     $str = '<?php
     $stdout = fopen("php://stdout","w");
     $stderr = fopen("php://stderr","w");
@@ -88,7 +88,8 @@ class ProcessExecuteErrorOutputTest extends TestCase {
     $proc->setErrout($ferr);
     $proc->run();
     //
-    $out = stream_get_contents($proc->getOutput());
+    $fout = $proc->getOutput();
+    $out = stream_get_contents($fout);
     $err = stream_get_contents($proc->getErrout());
     //
     $this->assertEquals('HelloWorld', $out);

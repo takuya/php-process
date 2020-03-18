@@ -65,7 +65,9 @@ class ProcessExectuteOnErrorCallbackTest extends TestCase {
     $proc->setOnError($on_error);
     $proc->run();
     //
-    $out = stream_get_contents($proc->getOutput());
+    $fout = $proc->getOutput();
+    // var_dump([fstat_c($fout),$proc]);exit;;
+    $out = stream_get_contents($fout);
     $err = stream_get_contents($proc->getErrout());
     // //
     $this->assertEquals('HelloWorld', $out);

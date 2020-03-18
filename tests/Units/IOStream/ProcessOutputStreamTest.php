@@ -23,7 +23,7 @@ class ProcessOutputStreamTest extends TestCase {
     $this->assertEquals(0, ftell($fd));
   }
   
-  public function testOutputStreamIsBuffered() {
+  public function testOutputStreamBufferedContentisCorrect() {
     
     $proc = new Process(['sh']);
     $proc->setInput('echo  HelloWorld');
@@ -48,6 +48,7 @@ class ProcessOutputStreamTest extends TestCase {
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
     $proc->run();
     $fd = $proc->getOutput();
+    // var_dump([fstat_c($fd)]);exit;
     fseek($fd, SEEK_END);
     $this->assertEquals($size, fstat($fd)['size']);
   }
@@ -68,6 +69,7 @@ class ProcessOutputStreamTest extends TestCase {
     $proc->setOutput($fd = fopen('php://temp', 'w'));
     $proc->run();
     $fd = $proc->getOutput();
+    // var_dump([fstat_c($fd),stream_get_meta_data($fd)]);exit;
     fseek($fd, SEEK_END);
     $this->assertEquals($size, fstat($fd)['size']);
   }

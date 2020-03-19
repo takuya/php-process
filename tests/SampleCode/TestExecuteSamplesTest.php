@@ -26,8 +26,13 @@ class TestExecuteSamplesTest extends TestCase {
     $samples_file = glob(__DIR__.'/../../samples/src/*.php');
     foreach ($samples_file as $f_name) {
       
+      
+      $start = time();
       $proc = new Process([trim(`which php`), $f_name]);
       $proc->run();
+      if (  (time() - $start) > 10){
+        throw new \Exception(['long time exectuion.', $f_name]);
+      }
       if( ! $proc->getExitStatusCode() == 0
           || preg_match('/Stack trace/', ($err = stream_get_contents($proc->getErrout())))) {
         var_dump([$proc->getExitStatusCode(), $f_name, $err]);

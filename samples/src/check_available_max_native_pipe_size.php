@@ -10,6 +10,7 @@ function checkPipe1(){
   foreach ( range( 256*256-4,256*257) as $i){
     $size = $i;
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
+    $proc->disableBufferingOnWait();
     $proc->setTimeout(1);
     $proc->run();
     if($proc->canceled()) {
@@ -27,6 +28,7 @@ function checkPipe2(){
   foreach ( range( 256*256-4,256*257) as $i){
     $size = $i;
     $proc = new Process('php');
+    $proc->disableBufferingOnWait();
     $proc->setInput(sprintf('<?php
     $fd=fopen("php://stderr","w+");
     foreach( range(0,%d) as $i ){ fwrite($fd, 0); };

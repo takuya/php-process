@@ -56,7 +56,7 @@ class ProcessOutputStreamTest extends TestCase {
     $size = 256*256 + 1;
     // without buffering, output more than 256*256+1 will freeze.
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
-    $proc->setEnableBufferingOnWait(false);
+    $proc->disableBufferingOnWait();
     $proc->setTimeout(0.25);
     $proc->run();
     $is_canceld = $proc->canceled();

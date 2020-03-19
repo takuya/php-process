@@ -7,7 +7,7 @@ use phpDocumentor\Reflection\Types\This;
 
 /**
  * Class Process
- * @license  GPL-3.0
+ * @license  GPL-3.0 or later
  * @package  SystemUtil\Process
  * @author   takuya_1st <http://github.com/takuya/php-process>
  * @since    2020-03-13
@@ -81,15 +81,25 @@ class Process {
    */
   protected $pipedNextProcess;
   /**
-   * @var bool flag enables I/O buffering on wait. default = true;
+   * @var bool flag enables I/O buffering on wait. default = true.
    */
-  protected  $enable_buffering_on_wait =true;
+  protected  $enable_buffering_on_wait =false;
+  protected  $enable_blocking_on_wait = false;
   
   /**
-   * @param bool $enable_buffering_on_wait
+   * disable buffering proc_open pipes=[ 1 =>['pipe','w'], 2 =>['pipe','w']] .
    */
-  public function setEnableBufferingOnWait( bool $enable_buffering_on_wait ):void {
-    $this->enable_buffering_on_wait = $enable_buffering_on_wait;
+  public function disableBufferingOnWait():void {
+    $this->enable_buffering_on_wait = false;
+  }
+  public function enableBufferingOnWait():void {
+    $this->enable_buffering_on_wait = true;
+  }
+  public function disableBlockingOnWait():void {
+    $this->enable_blocking_on_wait = false;
+  }
+  public function enableBlockingOnWait():void {
+    $this->enable_blocking_on_wait = true;
   }
   
   /**
@@ -103,7 +113,8 @@ class Process {
     $this->env = $env;
     $this->cmd = $cmd;
     $this->current_process = $this->processStruct();
-    $this->setTimeout(5);
+    
+    $this->enableBufferingOnWait();
   }
   
   /**
@@ -491,74 +502,66 @@ class Process {
   }
   protected function registerPipeChangedChecker() {
     $checker_generator = function () {
-      $last_mtime = null; // bind mtime  in closure.
-      $check_output = function ($fd) use ( &$last_mtime ) {
-        if( $last_mtime == fstat($fd)['mtime'] ) {
+      $last_size = null; // bind size in closure.
+      $check_output = function ($fd) use ( &$last_size ) {
+        if( $last_size == fstat($fd)['size'] ) {
           return false;
         }
-        $last_mtime = fstat($fd)['mtime'];
-        return true;
+        $changed_size = fstat($fd)['size'] - $last_size;
+        $last_size = fstat($fd)['size'];
+  
+        return $changed_size;
       };
       return $check_output;
     };
     // register callback and checker
-    foreach ( $this->pipe_changed as $idx => $item) {
-      $this->current_process->buffered_pipes[$idx] =  $this->pipe_changed[$idx]['buffered'] ?  $this->getTempFd($this->use_memory):null;
-      $this->pipe_changed[$idx]['checker'] = $checker_generator();
-      stream_set_blocking($this->getPipe($idx), $this->pipe_changed[$idx]['blocking']);
+    isset($this->pipe_changed[1]) && ($this->pipe_changed[1]['checker'] = $checker_generator());
+    isset($this->pipe_changed[2]) && ($this->pipe_changed[2]['checker'] = $checker_generator());
+  
+  
+  }
+  
+  protected function setOnOChanged( $i, $function_on_change ){
+    $this->enableBufferingOnWait();
+    $this->enableBlockingOnWait();
+    if ( empty($this->pipe_changed[$i]) ){
+      $this->pipe_changed[$i] = [
+        'callback'=> null,
+        'checker' => null,
+      ];
+      $this->pipe_changed[$i]['callback'] = null;
+    }
+    $this->pipe_changed[$i]['callback'] = $function_on_change;
+  }
+  
+  
+  public function setOnOutputChanged( $function_on_change ) :Process {
+    $this->setOnOChanged(1, $function_on_change);
+    return $this;
+  }
+  public function setOnErrputChanged( $function_on_change ) :Process {
+    $this->setOnOChanged(2, $function_on_change);
+    return $this;
+  }
+  
+  
+  protected function checkProcessPipesHasUpdated(){
+    foreach ([1,2] as $i){
+      if ( isset($this->pipe_changed[$i]) && $chaned_size = $this->checkPipeUpdated($i)  ){
+        $this->handleOnOutputChanged($i, $chaned_size);
+      }
     }
   }
   protected function checkPipeUpdated(int $i){
     $checker = $this->pipe_changed[$i]['checker'];
-    return $checker($this->getPipe($i));
+    return $checker($this->getBufferedPipe($i));
     
   }
-  protected function checkOutputHasChanged(){
-    return $this->checkPipeUpdated(1);
-  }
-  // protected function checkErrOutHasChanged(){
-  //   return ($this->function_check_pipe2_function)();
-  // }
-  public function setOnOutputChanged( $function_on_change, $opt = ['blocking'=>true, 'buffered'=>true] ){
-    if ( empty($this->pipe_changed[1]) ){
-      $this->pipe_changed[1] = [
-        'callback'=> null,
-        'checker' => null,
-        'blocking' => true,
-        'buffered' => true,
-      ];
-      $this->pipe_changed[1]['callback'] = null;
-    }
-    $this->pipe_changed[1]['callback'] = $function_on_change;
-    $this->pipe_changed[1]['blocking'] = $opt['blocking']??true;
-    $this->pipe_changed[1]['buffered'] = $opt['buffered']??true;
-  }
-  
-  protected function getOnOutputChanged():?Closure{
-    if ( empty($this->pipe_changed[1])  ){
-      return null;
-    }
-    return $this->pipe_changed[1]['callback'];
-  }
-  // public function setOnErroutChanged( $function_on_change ){
-  //   $this->function_on_pipe2_changed = $function_on_change;
-  // }
-  // protected function getOnErroutChanged(){
-  //   return $this->function_on_pipe2_changed;
-  // }
-  protected function checkProcessPipesHasUpdated(){
-    if ( $this->getOnOutputChanged() && $this->checkOutputHasChanged() ){
-      $this->handleOnOutputChanged();
-    }
-    // if ( $this->getOnErroutChanged() && $this->checkErrOutHasChanged() ){
-    //   $str = fread($this->current_process->pipes[2], 1024);
-    //   ($this->getOnErroutChanged())($str);
-    // }
-  }
-  protected function handleOnOutputChanged(){
-    $str = fread($this->current_process->pipes[1], 1024);
-    $this->pipe_changed[1]['buffered']&&fwrite($this->getBufferedPipe(1), $str);
-    $callback = $this->getOnOutputChanged();
+  protected function handleOnOutputChanged(int $i, $changed_size){
+    
+    fseek($this->getBufferedPipe($i), -1 * $changed_size, SEEK_CUR);
+    $str = fread( $this->getBufferedPipe($i), $changed_size );
+    $callback = $this->pipe_changed[$i]['callback'];
     $callback($str);
   }
   /**
@@ -566,12 +569,13 @@ class Process {
    */
   protected function bufferingOnWait(){
     foreach ([1,2] as $i){
-      if (!$this->getPipe(1)){continue;}
-      $blocked = stream_get_meta_data($this->getPipe(1))['blocked'];
-      stream_set_blocking($this->getPipe(1),false);
-      $buff = $this->getBufferedPipe(1)?? $this->getTempFd($this->use_memory);
-      fwrite($buff, fread($this->getPipe(1), 1024));
-      stream_set_blocking($this->getPipe(1),$blocked);
+      if (!$this->getPipe($i)){continue;}
+      $buff = $this->getBufferedPipe($i)?? $this->getTempFd($this->use_memory);
+      $this->current_process->buffered_pipes[$i] = $buff;
+      //
+      stream_set_blocking($this->getPipe($i),$this->enable_blocking_on_wait);
+      fwrite($buff, fread($this->getPipe($i), 1024));
+      
     }
   }
     /**
@@ -579,9 +583,9 @@ class Process {
      */
   protected function handleOnWait() {
   
-    //
-    // $this->enable_buffering_on_wait && $this->bufferingOnWait();
-    //
+    
+    $this->enable_buffering_on_wait && $this->bufferingOnWait();
+    
     $this->checkProcessPipesHasUpdated();
     
     $callback_on_every_waiting = $this->getOnWaiting();
@@ -679,7 +683,7 @@ class Process {
   protected function getOutStream( int $i) {
     $out = ( $i===1 ? $this->output  : (  $i === 2 ? $this->errout : null )  );
     
-    if ( $this->isFinished()){
+    if ( $this->isFinished() ){
       if ( $out == null ){
         if ( $this->isProcessClosed() ){
           $out = $out ?? $this->getBufferedPipe($i);
@@ -719,17 +723,14 @@ class Process {
    *
    */
   protected function handleOnFinish() {
-    // override pipe(out/err) to 'php://tempfile'.
-    if (  !empty($this->pipe_changed[1]) ){
-      if ( $this->pipe_changed[1]['buffered'] ) {
-        while( !feof( $this->getPipe(1)) ){ fwrite($this->getBufferedPipe(1), fread($this->getPipe(1), 1024)); }
-      }else{
-        // ensure read all
-        $this->handleOnOutputChanged();
-      }
-    }
-    $this->getOutput();//read chars from proc pipe
-    $this->getErrout();//read chars from proc pipe
+
+    // ensure  onOutputChangedCallback can read all
+    $this->checkProcessPipesHasUpdated();
+    
+    //
+    $this->getOutput();// fetch unread chars.
+    $this->getErrout();// fetch unread chars.
+    
   }
   /**
    * check process is running.
@@ -956,12 +957,14 @@ class Process {
   
   /**
    * Set Callback function called when waiting process.
-   * Don't use blocking IO functions(ie. stream_get_contents) in this callback.
-   * stream_get_contents is blocking IO. stream_get_contents cannot be used as realtime output.
+   * Default onWait buffering  will be override.
+   * Don't use blocking IO wait EOF functions  (ie. stream_get_contents) in this callback.
+   * Using whole read Blocking IO function like stream_get_contents cannot get realtime output.
    * @param \Closure $on_executing -- function ( $status, $pipes, $prcoess ){..}
    * @return \SystemUtil\Process return this.
    */
   public function setOnWaiting( $on_executing ):Process {
+    $this->disableBufferingOnWait();
     $this->on_executing = $on_executing;
     return $this;
   }

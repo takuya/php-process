@@ -54,6 +54,7 @@ class ProcessOnErrorCallBackTest extends TestCase {
     $proc->setInput('<?php echo "Hello World\n"; exit(1);');
     $proc->setOnError(
       function ( $stat, $pipes ) {
+        // var_dump([ fstat_c($pipes[1]),fstat_c($pipes[2]), ]);exit;
         $this->assertEquals(false, $stat['running']);
         $this->assertEquals(1, $stat['exitcode']);
         $this->assertEquals(null, $pipes[0]??null);

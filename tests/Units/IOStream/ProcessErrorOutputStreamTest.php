@@ -76,7 +76,7 @@ class ProcessErrorOutputStreamTest extends TestCase {
     $size = 256*256 + 1;
     // without buffering,  more than 256*256+1 will freeze. check canceled.
     $proc = new Process('php');
-    $proc->setEnableBufferingOnWait(false);
+    $proc->disableBufferingOnWait();
     $proc->setInput(
       sprintf(
         '<?php $fd=fopen("php://stderr","w+");

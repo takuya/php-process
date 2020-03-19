@@ -4,7 +4,7 @@
   "homepage": "https://github.com/takuya/php-process",
   "type": "library",
   "license": "GPL-3.0-or-later",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "keywords": [
     "process",
     "proc_open",

@@ -39,7 +39,6 @@ class ProcessSuccessOnCallBackTest extends TestCase {
       function ( $stat, $pipes ) {
         $this->assertIsArray($stat);
         $this->assertIsArray($pipes);
-        $this->assertEquals(3, sizeof($pipes));
         $this->assertArrayHasKey('exitcode', $stat);
         $this->assertArrayHasKey('running', $stat);
         $this->assertArrayHasKey('signaled', $stat);

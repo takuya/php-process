@@ -48,15 +48,15 @@ class ProcessOutputStreamTest extends TestCase {
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
     $proc->run();
     $fd = $proc->getOutput();
-    // var_dump([fstat_c($fd)]);exit;
     fseek($fd, SEEK_END);
     $this->assertEquals($size, fstat($fd)['size']);
   }
   
   public function testOutputStreamIsBuffered_65Kbytes() {
     $size = 256*256 + 1;
-    // more than 256*256+1 will freeze.
+    // without buffering, output more than 256*256+1 will freeze.
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
+    $proc->setEnableBufferingOnWait(false);
     $proc->setTimeout(0.25);
     $proc->run();
     $is_canceld = $proc->canceled();
@@ -69,7 +69,6 @@ class ProcessOutputStreamTest extends TestCase {
     $proc->setOutput($fd = fopen('php://temp', 'w'));
     $proc->run();
     $fd = $proc->getOutput();
-    // var_dump([fstat_c($fd),stream_get_meta_data($fd)]);exit;
     fseek($fd, SEEK_END);
     $this->assertEquals($size, fstat($fd)['size']);
   }

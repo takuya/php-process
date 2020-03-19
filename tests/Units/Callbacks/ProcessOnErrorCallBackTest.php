@@ -41,7 +41,6 @@ class ProcessOnErrorCallBackTest extends TestCase {
       function ( $stat, $pipes ) {
         $this->assertIsArray($stat);
         $this->assertIsArray($pipes);
-        $this->assertEquals(3, sizeof($pipes));
         $this->assertArrayHasKey('exitcode', $stat);
         $this->assertArrayHasKey('running', $stat);
         $this->assertArrayHasKey('signaled', $stat);
@@ -57,11 +56,11 @@ class ProcessOnErrorCallBackTest extends TestCase {
       function ( $stat, $pipes ) {
         $this->assertEquals(false, $stat['running']);
         $this->assertEquals(1, $stat['exitcode']);
-        $this->assertEquals(null, $pipes[0]);
+        $this->assertEquals(null, $pipes[0]??null);
         $this->assertEquals("stream", get_resource_type($pipes[1]));
         $this->assertEquals("stream", get_resource_type($pipes[2]));;
         $this->assertEquals(12, strlen(stream_get_contents($pipes[1])));;
-        $this->assertEquals(0, strlen(stream_get_contents($pipes[2])));;
+        $this->assertEquals( 0, strlen(stream_get_contents($pipes[2])));;
         // TODO :: After call setInput, pipes[0] is null. but should be resource or else.
       });
     $proc->run();

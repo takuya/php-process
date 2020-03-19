@@ -74,8 +74,9 @@ class ProcessErrorOutputStreamTest extends TestCase {
   
   public function testErrorOutputStreamIsBuffered_65Kbytes() {
     $size = 256*256 + 1;
-    // more than 256*256+1 will freeze.
+    // without buffering,  more than 256*256+1 will freeze. check canceled.
     $proc = new Process('php');
+    $proc->setEnableBufferingOnWait(false);
     $proc->setInput(
       sprintf(
         '<?php $fd=fopen("php://stderr","w+");

@@ -676,27 +676,34 @@ class Process {
     return $this->on_proc_closed ?? $default;
   }
   
-  protected function getIOById( int $i){
-    return ( $i===1 ? $this->output  : (  $i === 2 ? $this->errout : null )  ) ;
-  }
   protected function getOutStream( int $i) {
-    $out = $this->getIOById($i);
+    $out = ( $i===1 ? $this->output  : (  $i === 2 ? $this->errout : null )  );
     
-    if ($this->isFinished()){
-      $out = $this->getIOById($i) ?? $this->getBufferedPipe($i);
+    if ( $this->isFinished()){
       if ( $out == null ){
-        // getOutput called without wait().
-        $this->current_process->buffered_pipes = $this->mapPipeToTemp($this->current_process->pipes);
-        $out = $this->getBufferedPipe($i);
+        if ( $this->isProcessClosed() ){
+          $out = $out ?? $this->getBufferedPipe($i);
+          if ( is_array($out) && $out[0] =='file' ){
+            $out = fopen($out[1], 'r+');
+          }
+        }else{
+          $out = $this->getBufferedPipe($i) ?? $this->getTempFd($this->use_memory);
+          if ( !$this->canceled()){
+            stream_copy_to_stream($this->getPipe($i), $out);
+          }
+          $this->current_process->buffered_pipes[$i] = $out;
+      
+        }
       }
-      if ( is_array($out) && $out[0] =='file' ){
-        $out = fopen($out[1], 'r+');
-      }
-      is_resource($out) && stream_get_meta_data($out)['seekable'] && rewind($out);
+      is_resource($out)
+      && get_resource_type($out) == 'stream'
+      && stream_get_meta_data($out)['seekable']
+      && rewind($out);
     }
     return $out;
   
   }
+  
   /**
    * Get process Output as Stream.
    * @return resource
@@ -721,34 +728,9 @@ class Process {
         $this->handleOnOutputChanged();
       }
     }
-    $this->current_process->buffered_pipes = $this->mapPipeToTemp($this->current_process->pipes);
+    $this->getOutput();//read chars from proc pipe
+    $this->getErrout();//read chars from proc pipe
   }
-  /**
-   * @param $pipes
-   * @return array array of string [in,out,err]
-   */
-  protected function mapPipeToTemp( $pipes ):array {
-    
-    
-    $buff = [0=> $pipes[0]??null, 1=>$this->output,2=>$this->errout];
-    foreach ([1,2] as $i){
-      if ( $buff[$i] === null ){
-        $buff[$i] = $this->getBufferedPipe($i ) ?? $this->getTempFd($this->use_memory);
-        if ( !$this->canceled() ){
-          stream_copy_to_stream($pipes[$i],$buff[$i] );
-        }else
-        {
-          // If forked child has forked child, Canceled has no no eof available in linux.
-          // Read remained chars from pipe.
-          $bytes_unread = stream_get_meta_data($pipes[$i])['unread_bytes'];
-          $bytes_unread > 0 ? fwrite($buff[$i], fread($pipes[$i], $bytes_unread)) : null;
-        }
-        rewind($buff[$i]);
-      }
-    }
-    return $buff;
-  }
-  
   /**
    * check process is running.
    * @return bool is running status

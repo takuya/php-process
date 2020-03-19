@@ -52,15 +52,26 @@ class ProcessOutputStreamTest extends TestCase {
     $this->assertEquals($size, fstat($fd)['size']);
   }
   
-  public function testOutputStreamIsBuffered_65Kbytes() {
+  public function testOutputStreamIsBuffered_65Kbytes_checkFreeze() {
     $size = 256*256 + 1;
-    // without buffering, output more than 256*256+1 will freeze.
+    // without buffering, output more than 256*256+1 will freeze.Check freeze, and Timeout
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
     $proc->disableBufferingOnWait();
     $proc->setTimeout(0.25);
     $proc->run();
     $is_canceld = $proc->canceled();
     $this->assertEquals(true, $is_canceld);
+  }
+  public function testOutputStreamIsBuffered_65Kbytes_avoidByBuffuering() {
+    $size = 256*256 + 1;
+    // Without buffering,  more than 256*256+1 will freeze. Check Success by Buffering.
+    $proc = new Process(['head', '-c', $size, '/dev/urandom']);
+    $proc->enableBufferingOnWait();
+    $proc->setTimeout(0.25);
+    $proc->run();
+    $fd = $proc->getOutput();
+    fseek($fd, SEEK_END);
+    $this->assertEquals($size, fstat($fd)['size']);
   }
   
   public function testOutputStreamIsBuffered_100bytes() {

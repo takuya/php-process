@@ -72,9 +72,9 @@ class ProcessErrorOutputStreamTest extends TestCase {
     $this->assertEquals(true, feof($fd));
   }
   
-  public function testErrorOutputStreamIsBuffered_65Kbytes() {
+  public function testErrorOutputStreamIsBuffered_65Kbytes_checkFreezed() {
     $size = 256*256 + 1;
-    // without buffering,  more than 256*256+1 will freeze. check canceled.
+    // Without buffering, output more than 256*256+1 will freeze. Check freeze, and Timeout
     $proc = new Process('php');
     $proc->disableBufferingOnWait();
     $proc->setInput(
@@ -88,6 +88,27 @@ class ProcessErrorOutputStreamTest extends TestCase {
     $proc->run();
     $is_canceld = $proc->canceled();
     $this->assertEquals(true, $is_canceld);
+  }
+  public function testErrorOutputStreamIsBuffered_65Kbytes_avoidFreezeByBuffering() {
+    $size = 256*256 + 1;
+    // Without buffering,  more than 256*256+1 will freeze. Check Success by Buffering.
+    $proc = new Process('php');
+    $proc->enableBufferingOnWait();
+    $proc->setInput(
+      sprintf(
+        '<?php $fd=fopen("php://stderr","w+");
+      for( $i=0;$i<%d;$i++ ){ fwrite($fd, 1); };
+      fflush($fd);
+      fclose($fd);',
+        $size));
+    $proc->setTimeout(1);
+    $proc->run();
+    $fd = $proc->getErrout();
+    fseek($fd, $size);
+    fread($fd, 1);
+    $this->assertEquals($size, fstat($fd)['size']);
+    $this->assertEquals($size, ftell($fd));
+    $this->assertEquals(true, feof($fd));
   }
   
   public function testErrorOutputStreamIsBuffered_100Kbytes() {

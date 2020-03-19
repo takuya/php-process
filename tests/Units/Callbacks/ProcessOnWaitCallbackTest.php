@@ -62,10 +62,10 @@ class ProcessOnWaitCallbackTest extends TestCase {
         $this->assertEquals(0, fstat($pipes[2])['size']);;
         $this->assertEquals(true, $stat['running']);
         $this->assertEquals(-1, $stat['exitcode']);
-        $this->assertEquals("stream", get_resource_type($pipes[1]));
+        $this->assertEquals(null, $pipes[0] ?? null);
+        $this->assertEquals("stream", get_resource_type($pipes[1]??false));
         $this->assertEquals("stream", get_resource_type($pipes[2]));;
         // TODO ::  SetInput(string) result in pipes[0] is null. but should be active resource or else.
-        $this->assertEquals(null, get_resource_type($pipes[0]));
         // for sure, called once.
         usleep(10);
         $proc->setOnWaiting(function () { });

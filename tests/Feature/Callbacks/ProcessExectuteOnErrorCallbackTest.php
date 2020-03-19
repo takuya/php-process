@@ -87,6 +87,10 @@ class ProcessExectuteOnErrorCallbackTest extends TestCase {
     rewind($fin);
     //
     $callback = function ( $status, $pipes ) {
+      $this->assertEquals( true, is_resource($pipes[1]));
+      $this->assertEquals( "stream", get_resource_type($pipes[1]));
+      $this->assertEquals( true, is_resource($pipes[2]));
+      $this->assertEquals( "stream", get_resource_type($pipes[2]));
       fclose($pipes[1]);
       fclose($pipes[2]);
     };

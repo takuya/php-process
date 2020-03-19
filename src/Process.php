@@ -546,7 +546,7 @@ class Process {
   }
   protected function handleOnOutputChanged(){
     $str = fread($this->current_process->pipes[1], 1024);
-    fwrite($this->getBufferedPipe(1), $str);
+    $this->pipe_changed[1]['buffered']&&fwrite($this->getBufferedPipe(1), $str);
     $callback = $this->getOnOutputChanged();
     $callback($str);
   }
@@ -665,7 +665,7 @@ class Process {
       if ( is_array($out) && $out[0] =='file' ){
         $out = fopen($out[1], 'r+');
       }
-      stream_get_meta_data($out)['seekable'] && rewind($out);
+      is_resource($out) && stream_get_meta_data($out)['seekable'] && rewind($out);
     }
     return $out;
   

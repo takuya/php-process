@@ -13,7 +13,7 @@ class ProcessExectuteOutputTest extends TestCase {
    */
   public function testOutputRedirectToUWritableFile() {
     
-    $this->expectException(Exception::class);
+    $this->expectException(\PHPUnit\Framework\Error\Warning::class);
     $output = "/a";
     $proc = new Process('date');
     $proc->setOutput($output);

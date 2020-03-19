@@ -16,7 +16,7 @@
 
 >
     <php>
-        <ini name="error_reporting" value="5"/>
+        <ini name="error_reporting" value="2303"/>
     </php>
 
     <testsuites>

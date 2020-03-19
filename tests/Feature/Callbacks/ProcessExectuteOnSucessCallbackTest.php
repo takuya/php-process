@@ -1,27 +1,26 @@
 <?php
 
-namespace Tests\Feature\Process;
+namespace Tests\Feature\Callbacks;
 
 use Tests\TestCase;
 use SystemUtil\Process;
 
-class ProcessExectuteOnErrorCallbackTest extends TestCase {
+class ProcessExectuteOnSucessCallbackTest extends TestCase {
   
-  public function testOnErrorCallbackStatus() {
+  public function testOnSucessCallbackStatus() {
     // prepare
     $str = '<?php
     $stdout = fopen("php://stdout","w");
     $stderr = fopen("php://stderr","w");
     fwrite($stdout,"HelloWorld");
-    fwrite($stderr,"HelloError");
-    exit(1);';
+    fwrite($stderr,"HelloError");';
     $fin = fopen('php://temp', 'r+');
     fwrite($fin, $str);
     rewind($fin);
     //
     $fout = fopen('php://temp', 'w+');
     $ferr = fopen('php://temp', 'w+');
-    $callback = function ( $status, $pipes ) use ( &$fout, &$ferr ) {
+    $on_sucess = function ( $status, $pipes ) use ( &$fout, &$ferr ) {
       while( ! feof($pipes[1])) {
         fwrite($fout, fread($pipes[1], 1024), 1024);
       }
@@ -35,7 +34,7 @@ class ProcessExectuteOnErrorCallbackTest extends TestCase {
     };
     $proc = new Process('php');
     $proc->setInput($fin);
-    $proc->setOnError($callback);
+    $proc->setOnSuccess($on_sucess);
     $proc->run();
     //
     $out = stream_get_contents($fout);
@@ -45,24 +44,22 @@ class ProcessExectuteOnErrorCallbackTest extends TestCase {
     $this->assertEquals('HelloError', $err);
   }
   
-  public function testOnErrorDoNothingCallback() {
+  public function testOnSucessDoNothingCallback() {
     // prepare
     $str = '<?php
     $stdout = fopen("php://stdout","w");
     $stderr = fopen("php://stderr","w");
     fwrite($stdout,"HelloWorld");
-    fwrite($stderr,"HelloError");
-    exit(1);
-    ';
+    fwrite($stderr,"HelloError");';
     $fin = fopen('php://temp', 'r+');
     fwrite($fin, $str);
     rewind($fin);
     //
-    $on_error = function ( $status, $pipes ) {
+    $on_sucess = function ( $status, $pipes ) {
     };
     $proc = new Process('php');
     $proc->setInput($fin);
-    $proc->setOnError($on_error);
+    $proc->setOnSuccess($on_sucess);
     $proc->run();
     //
     $out = stream_get_contents($proc->getOutput());
@@ -72,26 +69,25 @@ class ProcessExectuteOnErrorCallbackTest extends TestCase {
     $this->assertEquals('HelloError', $err);
   }
   
-  public function testOnErrorClosePipes() {
+  public function testOnSucessClosePipes() {
     // prepare
     $str = '<?php
     $stdout = fopen("php://stdout","w");
     $stderr = fopen("php://stderr","w");
     fwrite($stdout,"HelloWorld");
-    fwrite($stderr,"HelloError");
-    exit(1);';
+    fwrite($stderr,"HelloError");';
     $fin = fopen('php://temp', 'r+');
     fwrite($fin, $str);
     rewind($fin);
     //
-    $callback = function ( $status, $pipes ) {
+    $on_sucess = function ( $status, $pipes ) {
       fclose($pipes[1]);
       fclose($pipes[2]);
     };
     //
     $proc = new Process('php');
     $proc->setInput($fin);
-    $proc->setOnError($callback);
+    $proc->setOnSuccess($on_sucess);
     $proc->run();
     //
     $this->assertTrue(get_resource_type($proc->getOutput()) == 'Unknown');

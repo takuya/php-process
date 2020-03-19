@@ -1,6 +1,8 @@
 <?php
 
 use SystemUtil\Process;
+require_once __DIR__.'/../../src/Process.php';
+
 
 $str = '<?php
     $stdout = fopen("php://stdout","w");

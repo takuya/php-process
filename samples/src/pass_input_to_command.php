@@ -2,11 +2,11 @@
 
 use SystemUtil\Process;
 
-require_once '../../src/Process.php';
+require_once __DIR__.'/../../src/Process.php';
 
 
 $input_string = 'echo "Hello World"';
-$f_name = tempnam(sys_get_temp_dir());
+$f_name = tempnam(sys_get_temp_dir(),"temp");
 file_put_contents($f_name, $input_string);
 
 

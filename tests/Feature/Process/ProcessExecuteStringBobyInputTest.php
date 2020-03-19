@@ -5,7 +5,6 @@ namespace Tests\Feature\Process;
 use Tests\TestCase;
 use SystemUtil\Process;
 
-
 class ProcessExecuteStringBobyInputTest extends TestCase {
   
   public function testPhpBodyAsFd() {
@@ -20,6 +19,7 @@ class ProcessExecuteStringBobyInputTest extends TestCase {
     $ret = stream_get_contents($ret);
     $this->assertEquals('hello world', $ret);
   }
+  
   public function testPhpBodyString() {
     $str = "<?php echo 'hello world';";
     $proc = new Process('php');
@@ -29,6 +29,7 @@ class ProcessExecuteStringBobyInputTest extends TestCase {
     $ret = stream_get_contents($ret);
     $this->assertEquals('hello world', $ret);
   }
+  
   public function testShBodyShortString() {
     $str = "echo hello";
     $proc = new Process('sh');
@@ -38,6 +39,7 @@ class ProcessExecuteStringBobyInputTest extends TestCase {
     $ret = stream_get_contents($ret);
     $this->assertEquals("hello\n", $ret);
   }
+  
   public function testShBodyMultiLineString() {
     $str = "
     echo hello

@@ -1,6 +1,6 @@
 <?php
 
-$list = glob(__DIR__.'/*.php');
+$list = glob(__DIR__.'/./src/*.php');
 $list = array_diff($list, [__FILE__]);
 
 foreach ($list as $name){
@@ -15,8 +15,5 @@ foreach ($list as $name){
   echo $body."\n";
   echo '```'."\n";
   
-  
-
-
   
 }

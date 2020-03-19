@@ -5,15 +5,14 @@ namespace Tests\Feature\Process;
 use Tests\TestCase;
 use SystemUtil\Process;
 
-class ProcessExecuteErrorOutputTest  extends TestCase {
+class ProcessExecuteErrorOutputTest extends TestCase {
   
-  public function testStdinFDStdoutTempStdErrorTempRedirect(){
+  public function testStdinFDStdoutTempStdErrorTempRedirect() {
     $str = '<?php
     $stdout = fopen("php://stdout","w");
     $stderr = fopen("php://stderr","w");
     fwrite($stdout,"HelloWorld");
     fwrite($stderr,"HelloError");';
-    
     $fin = fopen('php://temp', 'r+');
     fwrite($fin, $str);
     rewind($fin);
@@ -27,13 +26,13 @@ class ProcessExecuteErrorOutputTest  extends TestCase {
     $this->assertEquals('HelloWorld', $out);
     $this->assertEquals('HelloError', $err);
   }
-  public function testStdinFDStdoutFDStdErrorTempRedirect(){
+  
+  public function testStdinFDStdoutFDStdErrorTempRedirect() {
     $str = '<?php
     $stdout = fopen("php://stdout","w");
     $stderr = fopen("php://stderr","w");
     fwrite($stdout,"HelloWorld");
     fwrite($stderr,"HelloError");';
-    
     $fin = fopen('php://temp', 'r+');
     fwrite($fin, $str);
     rewind($fin);
@@ -49,13 +48,13 @@ class ProcessExecuteErrorOutputTest  extends TestCase {
     $this->assertEquals('HelloWorld', $out);
     $this->assertEquals('HelloError', $err);
   }
-  public function testStdinFDStdoutFDStdErrorFDRedirect(){
+  
+  public function testStdinFDStdoutFDStdErrorFDRedirect() {
     $str = '<?php
     $stdout = fopen("php://stdout","w");
     $stderr = fopen("php://stderr","w");
     fwrite($stdout,"HelloWorld");
     fwrite($stderr,"HelloError");';
-    
     $fin = fopen('php://temp', 'r+');
     fwrite($fin, $str);
     rewind($fin);
@@ -73,13 +72,13 @@ class ProcessExecuteErrorOutputTest  extends TestCase {
     $this->assertEquals('HelloWorld', $out);
     $this->assertEquals('HelloError', $err);
   }
-  public function testStdinFDStdoutTempStdErrorFDRedirect(){
+  
+    public function testStdinFDStdoutTempStdErrorFDRedirect() {
     $str = '<?php
     $stdout = fopen("php://stdout","w");
     $stderr = fopen("php://stderr","w");
     fwrite($stdout,"HelloWorld");
     fwrite($stderr,"HelloError");';
-    
     $fin = fopen('php://temp', 'r+');
     fwrite($fin, $str);
     rewind($fin);
@@ -89,11 +88,11 @@ class ProcessExecuteErrorOutputTest  extends TestCase {
     $proc->setErrout($ferr);
     $proc->run();
     //
-    $out = stream_get_contents($proc->getOutput());
+    $fout = $proc->getOutput();
+    $out = stream_get_contents($fout);
     $err = stream_get_contents($proc->getErrout());
     //
     $this->assertEquals('HelloWorld', $out);
     $this->assertEquals('HelloError', $err);
   }
-
 }

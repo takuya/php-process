@@ -80,6 +80,17 @@ class Process {
    * @var \SystemUtil\Process
    */
   protected $pipedNextProcess;
+  /**
+   * @var bool flag enables I/O buffering on wait. default = true;
+   */
+  protected  $enable_buffering_on_wait =true;
+  
+  /**
+   * @param bool $enable_buffering_on_wait
+   */
+  public function setEnableBufferingOnWait( bool $enable_buffering_on_wait ):void {
+    $this->enable_buffering_on_wait = $enable_buffering_on_wait;
+  }
   
   /**
    * Process constructor.
@@ -142,7 +153,7 @@ class Process {
     return $this->isNotRunning() && $this->current_process->stat['signaled'];
   }
   protected function getPipe(int $i){
-    return $this->current_process->pipes[$i];
+    return $this->current_process->pipes[$i]??null;
   }
   protected function getBufferedPipe(int $i){
     if ( empty($this->current_process->buffered_pipes[$i])){
@@ -399,26 +410,26 @@ class Process {
    */
   protected function wait_process():void {
     
-    $this->handleEvent('OnStart');
+    $this->triggerEvent('OnStart');
     // wating
     while($this->isRunning()) {
-      $this->handleEvent('OnWait');
+      $this->triggerEvent('OnWait');
       usleep($this->wait_time);
       $this->checkTimeout();
     }
-    $this->handleEvent('OnFinish');
+    $this->triggerEvent('OnFinish');
     
     if( !$this->isSuccessful() || $this->canceled() ) {
-      $this->handleEvent('OnError');
+      $this->triggerEvent('OnError');
       proc_close($this->current_process->proc);
-      $this->handleEvent('OnProcClosed');
+      $this->triggerEvent('OnProcClosed');
       
       return;
     }
     //
-    $this->handleEvent('OnSuccess');
+    $this->triggerEvent('OnSuccess');
     proc_close($this->current_process->proc);
-    $this->handleEvent('OnProcClosed');
+    $this->triggerEvent('OnProcClosed');
     
     return;
   }
@@ -426,7 +437,7 @@ class Process {
   /**
    * @param string $event
    */
-  protected function handleEvent( string $event ) {
+  protected function triggerEvent( string $event ) {
     $event = strtolower($event);
     switch($event) {
       case 'onstart':
@@ -553,8 +564,24 @@ class Process {
   /**
    *
    */
+  protected function bufferingOnWait(){
+    foreach ([1,2] as $i){
+      if (!$this->getPipe(1)){continue;}
+      $blocked = stream_get_meta_data($this->getPipe(1))['blocked'];
+      stream_set_blocking($this->getPipe(1),false);
+      $buff = $this->getBufferedPipe(1)?? $this->getTempFd($this->use_memory);
+      fwrite($buff, fread($this->getPipe(1), 1024));
+      stream_set_blocking($this->getPipe(1),$blocked);
+    }
+  }
+    /**
+     *
+     */
   protected function handleOnWait() {
   
+    //
+    // $this->enable_buffering_on_wait && $this->bufferingOnWait();
+    //
     $this->checkProcessPipesHasUpdated();
     
     $callback_on_every_waiting = $this->getOnWaiting();
@@ -701,26 +728,22 @@ class Process {
    * @return array array of string [in,out,err]
    */
   protected function mapPipeToTemp( $pipes ):array {
-  
-    $copy_stream = function($fd_from, $fd_to ){
-
-      if ( !$this->canceled() ){
-        stream_copy_to_stream($fd_from, $fd_to );
-      }else
-        {
-        // If forked child has forked child, Canceled has no no eof available in linux.
-        // Read remained chars from pipe.
-        $bytes_unread = stream_get_meta_data($fd_from)['unread_bytes'];
-        $bytes_unread > 0 ? fwrite($fd_to, fread($fd_from, $bytes_unread)) : null;
-      }
-      rewind($fd_to);
-    };
-  
+    
+    
     $buff = [0=> $pipes[0]??null, 1=>$this->output,2=>$this->errout];
     foreach ([1,2] as $i){
       if ( $buff[$i] === null ){
         $buff[$i] = $this->getBufferedPipe($i ) ?? $this->getTempFd($this->use_memory);
-        $copy_stream( $pipes[$i],  $buff[$i] );
+        if ( !$this->canceled() ){
+          stream_copy_to_stream($pipes[$i],$buff[$i] );
+        }else
+        {
+          // If forked child has forked child, Canceled has no no eof available in linux.
+          // Read remained chars from pipe.
+          $bytes_unread = stream_get_meta_data($pipes[$i])['unread_bytes'];
+          $bytes_unread > 0 ? fwrite($buff[$i], fread($pipes[$i], $bytes_unread)) : null;
+        }
+        rewind($buff[$i]);
       }
     }
     return $buff;

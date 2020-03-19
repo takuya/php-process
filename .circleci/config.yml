@@ -52,7 +52,7 @@ jobs:
             cd ~/project  &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
-            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Sample &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite SampleCode &&
             echo done;
 
 

@@ -86,8 +86,9 @@ class Process {
   /**
    * @var array
    */
-  private $pipe_changed = [];
+  private $on_changed = [];
   
+  private $pipe_checker = [];
   /**
    * Process constructor.
    * @param       $cmd
@@ -592,7 +593,28 @@ class Process {
       $callback__func_on_start = $this->getInputFdCloseCallback();
       $callback__func_on_start($this->current_process->pipes);
     }
-    $this->registerPipeChangedChecker();
+    $this->registerOnChangedChecker();
+    
+    $this->addPipeChecker();
+  }
+  public function addPipeChecker(){
+    $checker_generator = function ( $stream ) {
+      $last_mtime = null; // bind mtime in closure.
+      $fd = $stream; // bind $fd in closure.
+      $check_stream = function () use ( &$last_mtime, $fd ) {
+        if( $last_mtime == fstat($fd)['mtime'] ) {
+          return false;
+        }
+        $last_mtime = fstat($fd)['size'];
+        return true;
+      };
+    
+      return $check_stream;
+    };
+  
+    $this->getPipe(1) && $this->pipe_checker[1] = $checker_generator( $this->getPipe(1) );
+    $this->getPipe(2) && $this->pipe_checker[2] = $checker_generator( $this->getPipe(2) );
+    
   }
   
   /**
@@ -612,7 +634,7 @@ class Process {
     return $func;
   }
   
-  protected function registerPipeChangedChecker() {
+  protected function registerOnChangedChecker() {
     $checker_generator = function () {
       $last_size = null; // bind size in closure.
       $check_output = function ( $fd ) use ( &$last_size ) {
@@ -628,8 +650,8 @@ class Process {
       return $check_output;
     };
     // register callback and checker
-    isset($this->pipe_changed[1]) && ( $this->pipe_changed[1]['checker'] = $checker_generator() );
-    isset($this->pipe_changed[2]) && ( $this->pipe_changed[2]['checker'] = $checker_generator() );
+    isset($this->on_changed[1]) && ( $this->on_changed[1]['checker'] = $checker_generator() );
+    isset($this->on_changed[2]) && ( $this->on_changed[2]['checker'] = $checker_generator() );
   }
   
   /**
@@ -638,7 +660,7 @@ class Process {
   protected function handleOnWait() {
     
     
-    $this->enable_buffering_on_wait && $this->bufferingOnWait();
+    $this->bufferingOnWait();
     $this->checkProcessPipesHasUpdated();
     $callback_on_every_waiting = $this->getOnWaiting();
     $callback_on_every_waiting(
@@ -651,6 +673,7 @@ class Process {
    *
    */
   protected function bufferingOnWait() {
+    if ( $this->enable_buffering_on_wait !== true) {return;}
     foreach ([1, 2] as $i) {
       if( ! $this->getPipe($i) ) {
         continue;
@@ -665,14 +688,14 @@ class Process {
   
   protected function checkProcessPipesHasUpdated() {
     foreach ([1, 2] as $i) {
-      if( isset($this->pipe_changed[$i]) && $chaned_size = $this->checkPipeUpdated($i) ) {
+      if( isset($this->on_changed[$i]) && $chaned_size = $this->checkPipeUpdated($i) ) {
         $this->handleOnOutputChanged($i, $chaned_size);
       }
     }
   }
   
   protected function checkPipeUpdated( int $i ) {
-    $checker = $this->pipe_changed[$i]['checker'];
+    $checker = $this->on_changed[$i]['checker'];
     
     return $checker($this->getBufferedPipe($i));
   }
@@ -681,7 +704,7 @@ class Process {
     
     fseek($this->getBufferedPipe($i), -1*$changed_size, SEEK_CUR);
     $str = fread($this->getBufferedPipe($i), $changed_size);
-    $callback = $this->pipe_changed[$i]['callback'];
+    $callback = $this->on_changed[$i]['callback'];
     $callback($str);
   }
   
@@ -869,14 +892,14 @@ class Process {
   protected function setOnOChanged( $i, $function_on_change ) {
     $this->enableBufferingOnWait();
     $this->enableBlockingOnWait();
-    if( empty($this->pipe_changed[$i]) ) {
-      $this->pipe_changed[$i] = [
+    if( empty($this->on_changed[$i]) ) {
+      $this->on_changed[$i] = [
         'callback' => null,
         'checker'  => null,
       ];
-      $this->pipe_changed[$i]['callback'] = null;
+      $this->on_changed[$i]['callback'] = null;
     }
-    $this->pipe_changed[$i]['callback'] = $function_on_change;
+    $this->on_changed[$i]['callback'] = $function_on_change;
   }
   
   public function enableBlockingOnWait():void {

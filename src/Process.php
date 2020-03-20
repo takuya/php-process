@@ -611,10 +611,10 @@ class Process {
         $last_mtime = fstat($fd)['mtime'];
         return true;
       };
-    
+      
       return $check_stream;
     };
-  
+    
     $this->getPipe(1) && $this->pipe_checker[1] = $checker_generator( $this->getPipe(1) );
     $this->getPipe(2) && $this->pipe_checker[2] = $checker_generator( $this->getPipe(2) );
     
@@ -641,7 +641,7 @@ class Process {
    *
    */
   protected function handleOnWait() {
-  
+    
     $this->checkProcessPipesHasUpdated();
     $callback_on_every_waiting = $this->getOnWaiting();
     $callback_on_every_waiting(
@@ -650,10 +650,10 @@ class Process {
       $this->current_process->proc);
   }
   protected function checkProcessPipesHasUpdated(){
-
+    
     $this->getPipe(1) && $this->handleOnChange(1);
     $this->getPipe(2) && $this->handleOnChange(2);
-
+    
   }
   protected function handleOnChange( int $i){
     

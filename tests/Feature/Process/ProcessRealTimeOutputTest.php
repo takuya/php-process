@@ -35,6 +35,7 @@ class ProcessRealTimeOutputTest extends TestCase {
       $buff = $buff.fread($pipes[1], 1024);
     };
     $proc->setOnWaiting($func);
+    $proc->setWaitTime(1000);
     $proc->run();
     
     /// assert.

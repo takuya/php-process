@@ -89,6 +89,7 @@ class ProcessOnWaitCallbackTest extends TestCase {
     ', $loop_count-1);
     $proc = new Process('php');
     $proc->setInput($src);
+    $proc->setWaitTime(1000);
     $count = 0;
     $proc->setOnWaiting(
       function ( $stat, $pipes, $proc_res ) use( &$count){

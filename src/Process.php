@@ -658,8 +658,9 @@ class Process {
       $buff = $this->getBufferedPipe($i) ?? $this->getTempFd($this->use_memory);
       $this->current_process->buffered_pipes[$i] = $buff;
       //
-      stream_set_blocking($this->getPipe($i), $this->enable_blocking_on_wait);
+      stream_set_blocking($this->getPipe($i), false);
       fwrite($buff, fread($this->getPipe($i), 1024));
+      stream_set_blocking($this->getPipe($i), $this->enable_blocking_on_wait);
     }
   }
   
@@ -868,7 +869,7 @@ class Process {
   
   protected function setOnOChanged( $i, $function_on_change ) {
     $this->enableBufferingOnWait();
-    $this->enableBlockingOnWait();
+    $this->disableBlockingOnWait();
     if( empty($this->pipe_changed[$i]) ) {
       $this->pipe_changed[$i] = [
         'callback' => null,

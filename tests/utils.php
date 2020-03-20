@@ -28,14 +28,3 @@ function fstat_c( $res ) {
   
   return $st2;
 }
-
-
-// alias
-
-function dd( ...$args){
-  var_dump($args);
-  exit();
-}
-function dump( ...$args){
-  var_dump($args);
-}

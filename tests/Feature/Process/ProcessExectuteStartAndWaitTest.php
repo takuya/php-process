@@ -19,7 +19,7 @@ class ProcessExectuteStartAndWaitTest extends TestCase {
     $proc->start();
     $proc->wait();
     //
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     //
     $this->assertEquals("HelloWorld", $ret);
@@ -52,7 +52,7 @@ class ProcessExectuteStartAndWaitTest extends TestCase {
       $looped++;
       usleep(10);
     }
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals($str, $ret);
     $this->assertGreaterThan(10, $looped);
@@ -75,7 +75,7 @@ class ProcessExectuteStartAndWaitTest extends TestCase {
       usleep(10);
     }
     // dd($proc);
-    $ret = $proc->getErrout();
+    $ret = $proc->getErrorOutStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals("HelloError", $ret);
     $this->assertGreaterThan(10, $looped);
@@ -97,7 +97,7 @@ class ProcessExectuteStartAndWaitTest extends TestCase {
       usleep(10);
     }
     // dd($proc);
-    $ret = $proc->getErrout();
+    $ret = $proc->getErrorOutStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals("HelloError", $ret);
     $this->assertGreaterThan(10, $looped);
@@ -119,7 +119,7 @@ class ProcessExectuteStartAndWaitTest extends TestCase {
       usleep(10);
     }
     // dd($proc);
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals("HelloWorld", $ret);
     $this->assertGreaterThan(10, $looped);

@@ -10,20 +10,20 @@ class ProcessRedirectTest extends TestCase {
   public function testRedirectOutputToFileNameString() {
     $proc = new Process(['echo', 'HelloWorld']);
     $proc->setOutput('/dev/null');
-    $this->assertEquals(["file", "/dev/null", "w+",], $proc->getOutput());
+    $this->assertEquals(["file", "/dev/null", "w+",], $proc->getOutputStream());
   }
   
   public function testRedirectErrorOutputToFileNameString() {
     $proc = new Process(['echo', 'HelloWorld']);
     $proc->setErrout('/dev/null');
-    $this->assertEquals(["file", "/dev/null", "w+",], $proc->getErrout());
+    $this->assertEquals(["file", "/dev/null", "w+",], $proc->getErrorOutStream());
   }
   
   public function testRedirectOutputToStream() {
     $proc = new Process(['echo', 'HelloWorld']);
     $proc->setOutput(fopen('/dev/null', 'w+'));
     //
-    $fd = $proc->getOutput();
+    $fd = $proc->getOutputStream();
     $this->assertEquals('/dev/null', stream_get_meta_data($fd)['uri']);
     $this->assertTrue(is_resource($fd));
   }
@@ -31,7 +31,7 @@ class ProcessRedirectTest extends TestCase {
   public function testRedirectErrorOutputToStream() {
     $proc = new Process(['echo', 'HelloWorld']);
     $proc->setErrout(fopen('/dev/null', 'w+'));
-    $fd = $proc->getErrout();
+    $fd = $proc->getErrorOutStream();
     $this->assertEquals('/dev/null', stream_get_meta_data($fd)['uri']);
     $this->assertTrue(is_resource($fd));
   }

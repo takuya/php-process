@@ -12,7 +12,7 @@ $proc->start();
 while($proc->isRunning()){
 
 }
-$fd_out= $proc->getOutput();
+$fd_out= $proc->getOutputStream();
 
 
 

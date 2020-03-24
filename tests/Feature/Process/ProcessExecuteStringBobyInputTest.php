@@ -15,7 +15,7 @@ class ProcessExecuteStringBobyInputTest extends TestCase {
     $proc = new Process('php');
     $proc->setInput($fin);
     $proc->run();
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals('hello world', $ret);
   }
@@ -25,7 +25,7 @@ class ProcessExecuteStringBobyInputTest extends TestCase {
     $proc = new Process('php');
     $proc->setInput($str);
     $proc->run();
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals('hello world', $ret);
   }
@@ -35,7 +35,7 @@ class ProcessExecuteStringBobyInputTest extends TestCase {
     $proc = new Process('sh');
     $proc->setInput($str);
     $proc->run();
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals("hello\n", $ret);
   }
@@ -56,7 +56,7 @@ class ProcessExecuteStringBobyInputTest extends TestCase {
     $proc = new Process('sh');
     $proc->setInput($str);
     $proc->run();
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals(10, preg_match_all('/hello/', $ret));
   }

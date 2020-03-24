@@ -179,7 +179,7 @@ class Process {
   public function run() {
     $this->process_exec();
     
-    return [1 => $this->getOutput(), 2 => $this->getErrout()];
+    return [1 => $this->getOutputStream(), 2 => $this->getErrorOutStream()];
   }
   
   /**
@@ -286,8 +286,8 @@ class Process {
   protected function start_process() {
     $descriptor = [
       0 => $this->getInput() ?: ['pipe', 'r'],
-      1 => $this->getOutput() ?: ['pipe', 'w'],
-      2 => $this->getErrout() ?: ['pipe', 'w'],
+      1 => $this->getOutputStream() ?: ['pipe', 'w'],
+      2 => $this->getErrorOutStream() ?: ['pipe', 'w'],
     ];
     $process = proc_open($this->getCmd(), $descriptor, $pipes, $this->getCwd(), $this->getEnv());
     if( ! $process ) {
@@ -334,18 +334,6 @@ class Process {
     }
     
     return $this;
-  }
-  
-  /**
-   * Get process Output as Stream.
-   * @return resource
-   */
-  public function getOutput() {
-    if( $this->pipedNextProcess ) {
-      return $this->pipedNextProcess->getOutput();
-    }
-    
-    return $this->getOutStream(1);
   }
   
   /**
@@ -442,12 +430,60 @@ class Process {
    * Get process Error output as Stream
    * @return resource  resource
    */
-  public function getErrout() {
+  public function getErrorOutStream() {
     if( $this->pipedNextProcess ) {
-      return $this->pipedNextProcess->getErrout();
+      return $this->pipedNextProcess->getErrorOutStream();
     }
     
     return $this->getOutStream(2);
+  }
+  /**
+   * Get process Output as Stream.
+   * @return resource
+   */
+  public function getOutputStream() {
+    if( $this->pipedNextProcess ) {
+      return $this->pipedNextProcess->getOutputStream();
+    }
+    
+    return $this->getOutStream(1);
+  }
+  
+  /**
+   * Get process Error output as String for compatibility
+   * @return string standard output
+   */
+  public function getOutput(){
+    return stream_get_contents($this->getOutputStream());
+  }
+  
+  /**
+   * Get process Error output as String for compatibility
+   * @return string error output
+   */
+  public function getErrorOutput(){
+    return stream_get_contents($this->getErrorOutStream());
+  }
+  
+  /**
+   * Get process Commind Line as String for compatibility
+   * @return string command line
+   */
+  public function getCommandLine(){
+    $cmd = $this->getCmd();
+    if ( is_array($cmd )){
+      $cmd  = join(' ', $cmd);
+    }
+    return $cmd;
+  }
+  
+  /**
+   * Process status.
+   * for compatibility.
+   * @return int exit code.  -1 .. 255.
+   */
+  public function getExitCode(){
+    return $this->getExitStatusCode();
   }
   
   /**
@@ -743,8 +779,8 @@ class Process {
     // ensure  onOutputChangedCallback can read all
     $this->checkProcessPipesHasUpdated();
     //
-    $this->getOutput();// fetch unread chars.
-    $this->getErrout();// fetch unread chars.
+    $this->getOutputStream();// fetch unread chars.
+    $this->getErrorOutStream();// fetch unread chars.
   }
   
   /**
@@ -811,7 +847,7 @@ class Process {
    * Process status.
    * @return int exit code.  -1 .. 255.
    */
-  public function getExitStatusCode():int {
+  protected function getExitStatusCode():int {
     return $this->current_process->stat['exitcode'];
   }
   
@@ -876,8 +912,8 @@ class Process {
     }
     
     return [
-      $this->getOutput() ?: $this->getPipe(1),
-      $this->getErrout() ?: $this->getPipe(2),
+      $this->getOutputStream() ?: $this->getPipe(1),
+      $this->getErrorOutStream() ?: $this->getPipe(2),
     ];
   }
   
@@ -900,7 +936,7 @@ class Process {
     }
     $this->wait_process();
     
-    return $this->getOutput();
+    return $this->getOutputStream();
   }
   
   /**

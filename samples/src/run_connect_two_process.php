@@ -16,6 +16,6 @@ $proc2 = new Process('cat');
 $proc2->setInput($p1_out);
 $proc2->run();
 
-$p2_out = $proc2->getOutput();
+$p2_out = $proc2->getOutputStream();
 
 $str = stream_get_contents($p2_out);

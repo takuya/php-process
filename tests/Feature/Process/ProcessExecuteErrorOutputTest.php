@@ -20,8 +20,8 @@ class ProcessExecuteErrorOutputTest extends TestCase {
     $proc->setInput($fin);
     $proc->run();
     //
-    $out = stream_get_contents($proc->getOutput());
-    $err = stream_get_contents($proc->getErrout());
+    $out = stream_get_contents($proc->getOutputStream());
+    $err = stream_get_contents($proc->getErrorOutStream());
     //
     $this->assertEquals('HelloWorld', $out);
     $this->assertEquals('HelloError', $err);
@@ -42,8 +42,8 @@ class ProcessExecuteErrorOutputTest extends TestCase {
     $proc->setOutput($fout);
     $proc->run();
     //
-    $out = stream_get_contents($proc->getOutput());
-    $err = stream_get_contents($proc->getErrout());
+    $out = stream_get_contents($proc->getOutputStream());
+    $err = stream_get_contents($proc->getErrorOutStream());
     //
     $this->assertEquals('HelloWorld', $out);
     $this->assertEquals('HelloError', $err);
@@ -66,8 +66,8 @@ class ProcessExecuteErrorOutputTest extends TestCase {
     $proc->setErrout($ferr);
     $proc->run();
     //
-    $out = stream_get_contents($proc->getOutput());
-    $err = stream_get_contents($proc->getErrout());
+    $out = stream_get_contents($proc->getOutputStream());
+    $err = stream_get_contents($proc->getErrorOutStream());
     //
     $this->assertEquals('HelloWorld', $out);
     $this->assertEquals('HelloError', $err);
@@ -88,9 +88,9 @@ class ProcessExecuteErrorOutputTest extends TestCase {
     $proc->setErrout($ferr);
     $proc->run();
     //
-    $fout = $proc->getOutput();
+    $fout = $proc->getOutputStream();
     $out = stream_get_contents($fout);
-    $err = stream_get_contents($proc->getErrout());
+    $err = stream_get_contents($proc->getErrorOutStream());
     //
     $this->assertEquals('HelloWorld', $out);
     $this->assertEquals('HelloError', $err);

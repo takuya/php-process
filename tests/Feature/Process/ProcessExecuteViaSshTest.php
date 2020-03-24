@@ -16,8 +16,8 @@ class ProcessExecuteViaSshTest extends TestCase {
     ];
     $proc = new Process($cmd);
     $proc->run();
-    $out = stream_get_contents($proc->getOutput());
-    $err = stream_get_contents($proc->getErrout());
+    $out = stream_get_contents($proc->getOutputStream());
+    $err = stream_get_contents($proc->getErrorOutStream());
     $this->assertRegExp('/Hello via ssh/i', $out);
   }
   
@@ -35,8 +35,8 @@ class ProcessExecuteViaSshTest extends TestCase {
     $proc = new Process($cmd);
     $proc->setInput($fin);
     $proc->run();
-    $out = stream_get_contents($proc->getOutput());
-    $err = stream_get_contents($proc->getErrout());
+    $out = stream_get_contents($proc->getOutputStream());
+    $err = stream_get_contents($proc->getErrorOutStream());
     $this->assertEquals($str, $out);
   }
 }

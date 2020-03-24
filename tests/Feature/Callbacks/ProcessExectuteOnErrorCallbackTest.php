@@ -65,10 +65,10 @@ class ProcessExectuteOnErrorCallbackTest extends TestCase {
     $proc->setOnError($on_error);
     $proc->run();
     //
-    $fout = $proc->getOutput();
+    $fout = $proc->getOutputStream();
     // var_dump([fstat_c($fout),$proc]);exit;;
     $out = stream_get_contents($fout);
-    $err = stream_get_contents($proc->getErrout());
+    $err = stream_get_contents($proc->getErrorOutStream());
     // //
     $this->assertEquals('HelloWorld', $out);
     $this->assertEquals('HelloError', $err);
@@ -100,7 +100,7 @@ class ProcessExectuteOnErrorCallbackTest extends TestCase {
     $proc->setOnError($callback);
     $proc->run();
     //
-    $this->assertTrue(get_resource_type($proc->getOutput()) == 'Unknown');
-    $this->assertTrue(get_resource_type($proc->getErrout()) == 'Unknown');
+    $this->assertTrue(get_resource_type($proc->getOutputStream()) == 'Unknown');
+    $this->assertTrue(get_resource_type($proc->getErrorOutStream()) == 'Unknown');
   }
 }

@@ -18,7 +18,7 @@ class ProcessExectutePipeTest extends TestCase {
     $proc2 = new Process('cat');
     $proc2->setInput($p1_out);
     $proc2->run();
-    $p2_out = $proc2->getOutput();
+    $p2_out = $proc2->getOutputStream();
     $str = stream_get_contents($p2_out);
     $this->assertEquals("HelloWorld", $str);
   }
@@ -32,7 +32,7 @@ class ProcessExectutePipeTest extends TestCase {
     $proc1->setInput($str);
     $proc2 = $proc1->pipe('cat');
     $proc2->wait();
-    $p2_out = $proc2->getOutput();
+    $p2_out = $proc2->getOutputStream();
     $str = stream_get_contents($p2_out);
     $this->assertEquals("HelloWorld", $str);
   }
@@ -48,7 +48,7 @@ class ProcessExectutePipeTest extends TestCase {
     $proc2 = $proc1->pipe('cat');
     $proc3 = $proc2->pipe('cat');
     $proc3->wait();
-    $p3_out = $proc3->getOutput();
+    $p3_out = $proc3->getOutputStream();
     $str = stream_get_contents($p3_out);
     $this->assertEquals("HelloWorld", $str);
   }
@@ -65,7 +65,7 @@ class ProcessExectutePipeTest extends TestCase {
     $proc3 = $proc2->pipe('cat');
     $proc4 = $proc3->pipe(['grep', 'World']);
     $proc4->wait();
-    $p4_out = $proc4->getOutput();
+    $p4_out = $proc4->getOutputStream();
     $str = stream_get_contents($p4_out);
     $str = trim($str);
     $this->assertEquals("HelloWorld", $str);
@@ -81,7 +81,7 @@ class ProcessExectutePipeTest extends TestCase {
     $proc1->setInput($str);
     $proc1->pipeProcess($proc2);
     $proc2->wait();
-    $p2_out = $proc2->getOutput();
+    $p2_out = $proc2->getOutputStream();
     $str = stream_get_contents($p2_out);
     $this->assertEquals("HelloWorld", $str);
   }
@@ -136,7 +136,7 @@ class ProcessExectutePipeTest extends TestCase {
       ->pipe('cat')
       ->wait();
     
-    $fd = $proc->getOutput();
+    $fd = $proc->getOutputStream();
     $this->assertEquals("Hello World", stream_get_contents($fd));
     
   }

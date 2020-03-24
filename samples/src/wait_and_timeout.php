@@ -11,8 +11,8 @@ $proc->setTimeout(2);
 $proc->start();
 $proc->wait();
 
-$fd_out= $proc->getOutput();
-$fd_err= $proc->getErrout();
+$fd_out= $proc->getOutputStream();
+$fd_err= $proc->getErrorOutStream();
 var_dump(stream_get_contents($fd_out));
 var_dump(stream_get_contents($fd_err));
 

@@ -11,7 +11,7 @@ class ProcessErrorOutputStreamTest extends TestCase {
     $proc = new Process(['sh']);
     $proc->setInput('echo HelloWorld 3>&1 1>&2 2>&3');
     $proc->run();
-    $fd = $proc->getErrout();
+    $fd = $proc->getErrorOutStream();
     $this->assertEquals(true, stream_get_meta_data($fd)['seekable']);
   }
   
@@ -19,7 +19,7 @@ class ProcessErrorOutputStreamTest extends TestCase {
     $proc = new Process(['sh']);
     $proc->setInput('echo HelloWorld 3>&1 1>&2 2>&3');
     $proc->run();
-    $fd = $proc->getErrout();
+    $fd = $proc->getErrorOutStream();
     $this->assertEquals(0, ftell($fd));
   }
   
@@ -28,7 +28,7 @@ class ProcessErrorOutputStreamTest extends TestCase {
     $proc = new Process(['sh']);
     $proc->setInput('echo HelloWorld 3>&1 1>&2 2>&3');
     $proc->run();
-    $fd = $proc->getErrout();
+    $fd = $proc->getErrorOutStream();
     $this->assertRegExp('/HelloWorld/', stream_get_contents($fd));
     rewind($fd);
     $this->assertRegExp('/HelloWorld/', stream_get_contents($fd));
@@ -45,7 +45,7 @@ class ProcessErrorOutputStreamTest extends TestCase {
       fclose($fd);',
         $size));
     $proc->run();
-    $fd = $proc->getErrout();
+    $fd = $proc->getErrorOutStream();
     fseek($fd, $size);
     fread($fd, 1);
     $this->assertEquals($size, fstat($fd)['size']);
@@ -64,7 +64,7 @@ class ProcessErrorOutputStreamTest extends TestCase {
       fclose($fd);',
         $size));
     $proc->run();
-    $fd = $proc->getErrout();
+    $fd = $proc->getErrorOutStream();
     fseek($fd, $size);
     fread($fd, 1);
     $this->assertEquals($size, fstat($fd)['size']);
@@ -103,7 +103,7 @@ class ProcessErrorOutputStreamTest extends TestCase {
         $size));
     $proc->setTimeout(1);
     $proc->run();
-    $fd = $proc->getErrout();
+    $fd = $proc->getErrorOutStream();
     fseek($fd, $size);
     fread($fd, 1);
     $this->assertEquals($size, fstat($fd)['size']);
@@ -123,7 +123,7 @@ class ProcessErrorOutputStreamTest extends TestCase {
         $size));
     $proc->setErrout($fd = fopen('php://temp', 'w'));
     $proc->run();
-    $fd = $proc->getErrout();
+    $fd = $proc->getErrorOutStream();
     fseek($fd, $size);
     fread($fd, 1);
     $this->assertEquals($size, fstat($fd)['size']);

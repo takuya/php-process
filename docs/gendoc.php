@@ -158,7 +158,7 @@ extract($data);?>".'
   $proc = new  Process('php');
   $proc->setInput($src);
   $proc->run();
-  $fd_out = $proc->getOutput();
+  $fd_out = $proc->getOutputStream();
   $out = stream_get_contents($fd_out);
   
   return $out;

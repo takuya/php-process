@@ -28,7 +28,7 @@ class ProcessExecuteOnChangedCallbackTest extends TestCase {
     $proc->setInput($php_src);
     $proc->setOnOutputChanged($callback);
     $proc->run();
-    $str = stream_get_contents($proc->getOutput());
+    $str = stream_get_contents($proc->getOutputStream());
     $cnt = preg_match_all('/Hello\n/', $str);
     $this->assertEquals(5, $cnt);
   }
@@ -54,7 +54,7 @@ class ProcessExecuteOnChangedCallbackTest extends TestCase {
     $proc->setOnErrputChanged($callback);
     $proc->run();
     $this->assertEquals(true, $function_called);
-    $str = stream_get_contents($proc->getErrout());
+    $str = stream_get_contents($proc->getErrorOutStream());
     $cnt = preg_match_all('/Error\n/', $str);
     $this->assertEquals(5, $cnt);
     

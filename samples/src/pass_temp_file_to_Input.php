@@ -13,6 +13,6 @@ $proc = new Process('sh');
 $proc->setInput($fd_in);
 $proc->run();
 
-$fd = $proc->getOutput();
+$fd = $proc->getOutputStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> Hello World

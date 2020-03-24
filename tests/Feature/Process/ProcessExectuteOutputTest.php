@@ -62,7 +62,7 @@ class ProcessExectuteOutputTest extends TestCase {
   public function testOutputRedirectToDefault2() {
     $proc = new Process(['echo', 'Hello']);
     $ret = $proc->run();
-    $str = stream_get_contents($proc->getOutput());
+    $str = stream_get_contents($proc->getOutputStream());
     $this->assertRegExp("/hello/i", $str);
   }
 }

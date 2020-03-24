@@ -9,7 +9,7 @@ $proc->setInput('<?php echo "Hello World";');
 $proc->start();
 $proc->wait();
 
-$fd_out= $proc->getOutput();
+$fd_out= $proc->getOutputStream();
 var_dump(stream_get_contents($fd_out));
 
 

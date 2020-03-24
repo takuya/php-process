@@ -41,7 +41,7 @@ function checkPipe2(){
       printf("It is %d , seems to be max limit for proc_open [2=>['pipe'=>'w']].\n", $size-1);
       break;
     }else{
-      $out = $proc->getErrout();
+      $out = $proc->getErrorOutStream();
       printf ("write %d bytes, error output %d bytes.\n", $size, fstat($out)['size']);
     }
   }

@@ -11,6 +11,6 @@ import sys
 print(sys.path)
 ');
 $proc->run();
-$fd = $proc->getOutput();
+$fd = $proc->getOutputStream();
 $out = stream_get_contents($fd);
 var_dump($out);

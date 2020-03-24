@@ -16,7 +16,7 @@ class ProcessExectuteWithEnvTest extends TestCase {
     $proc = new Process('sh', $env);
     $proc->setInput($str);
     $proc->run();
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals($ret, "WORLD\n");
   }
@@ -31,7 +31,7 @@ class ProcessExectuteWithEnvTest extends TestCase {
     $proc->setEnv($env);
     $proc->setInput($str);
     $proc->run();
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals($ret, "WORLD\n");
   }
@@ -43,7 +43,7 @@ class ProcessExectuteWithEnvTest extends TestCase {
     $proc->addEnv('HELLO', 'WORLD');
     $proc->setInput($str);
     $proc->run();
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals($ret, "WORLD\n");
   }

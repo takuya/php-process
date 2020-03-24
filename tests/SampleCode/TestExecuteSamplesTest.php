@@ -14,10 +14,10 @@ class TestExecuteSamplesTest extends TestCase {
       
       $proc = new Process([trim(`which php`), '-l', $f_name]);
       $proc->run();
-      if( ! $proc->getExitStatusCode() == 0 ) {
-        var_dump([$proc->getExitStatusCode(), $f_name]);
+      if( ! $proc->getExitCode() == 0 ) {
+        var_dump([$proc->getExitCode(), $f_name]);
       }
-      $this->assertEquals(0, $proc->getExitStatusCode());
+      $this->assertEquals(0, $proc->getExitCode());
     }
   }
   
@@ -33,13 +33,13 @@ class TestExecuteSamplesTest extends TestCase {
       if (  (time() - $start) > 10){
         throw new \Exception(['long time exectuion.', $f_name]);
       }
-      if( ! $proc->getExitStatusCode() == 0
-          || preg_match('/Stack trace/', ($err = stream_get_contents($proc->getErrout())))) {
-        var_dump([$proc->getExitStatusCode(), $f_name, $err]);
-        throw new \Exception([$proc->getExitStatusCode(), $f_name, $err]);
+      if( ! $proc->getExitCode() == 0
+          || preg_match('/Stack trace/', ($err = stream_get_contents($proc->getErrorOutStream())))) {
+        var_dump([$proc->getExitCode(), $f_name, $err]);
+        throw new \Exception([$proc->getExitCode(), $f_name, $err]);
         //   var_dump([$proc->getCurrentProcess(), stream_get_contents($proc->getOutput()), stream_get_contents($proc->getErrout())]);exit;
       }
-      $this->assertEquals(0, $proc->getExitStatusCode());
+      $this->assertEquals(0, $proc->getExitCode());
     }
   }
 }

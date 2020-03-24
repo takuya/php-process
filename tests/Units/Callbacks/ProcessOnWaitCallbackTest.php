@@ -72,7 +72,7 @@ class ProcessOnWaitCallbackTest extends TestCase {
       });
     $proc->run();
     // check output is buffered and reusable.
-    $fd = $proc->getOutput();
+    $fd = $proc->getOutputStream();
     $this->assertEquals(5, strlen(stream_get_contents($fd)));
   }
   

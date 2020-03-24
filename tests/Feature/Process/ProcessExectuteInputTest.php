@@ -34,7 +34,7 @@ class ProcessExectuteInputTest extends TestCase {
     $proc = new Process('cat');
     $proc->setInput($fname);
     $proc->run();
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals($str, $ret);
     @unlink($fname);
@@ -51,7 +51,7 @@ class ProcessExectuteInputTest extends TestCase {
     $proc = new Process('cat');
     $proc->setInput($fin);
     $proc->run();
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals($str, $ret);
   }
@@ -64,7 +64,7 @@ class ProcessExectuteInputTest extends TestCase {
     $proc = new Process('php');
     $proc->setInput($str);
     $proc->run();
-    $ret = $proc->getOutput();
+    $ret = $proc->getOutputStream();
     $ret = stream_get_contents($ret);
     $this->assertEquals($str, $ret);
   }

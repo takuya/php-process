@@ -12,6 +12,6 @@ $proc->pipe('cat')
     ->pipe('cat')
     ->pipe('cat')
     ->wait();
-$fd = $proc->getOutput();
+$fd = $proc->getOutputStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> Hello World

@@ -43,7 +43,7 @@ require_once '../../src/Process.php';
 $proc = new Process('php');
 $proc->setInput('<?php echo "Hello World"');
 $proc->run();
-$fd = $proc->getErrout();
+$fd = $proc->getErrorOutStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> Hello World
 ```
@@ -59,7 +59,7 @@ require_once '../../src/Process.php';
 
 $proc = new Process('no-exists-command');
 $proc->run();
-$fd = $proc->getErrout();
+$fd = $proc->getErrorOutStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> sh: no-exists-command: command not found
 ```
@@ -92,7 +92,7 @@ require_once '../../src/Process.php';
 
 $proc = new Process(['echo', 'Hello World']);
 $proc->run();
-$fd = $proc->getOutput();
+$fd = $proc->getOutputStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> Hello World\n
 ```
@@ -113,7 +113,7 @@ $proc->start();
 while($proc->isRunning()){
 
 }
-$fd_out= $proc->getOutput();
+$fd_out= $proc->getOutputStream();
 ```
 ## pass_input_to_command.php
 
@@ -134,7 +134,7 @@ $proc = new Process('sh');
 $proc->setInput($f_name);
 $proc->run();
 
-$fd = $proc->getOutput();
+$fd = $proc->getOutputStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> Hello World
 ```
@@ -152,7 +152,7 @@ $str = '<?php echo "Hello World"';
 $proc = new Process('php');
 $proc->setInput($str );
 $proc->run();
-$fd = $proc->getErrout();
+$fd = $proc->getErrorOutStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> Hello World
 ```
@@ -174,7 +174,7 @@ $proc = new Process('sh');
 $proc->setInput($fd_in);
 $proc->run();
 
-$fd = $proc->getOutput();
+$fd = $proc->getOutputStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> Hello World
 ```
@@ -268,7 +268,7 @@ require_once '../../src/Process.php';
 $proc = new Process(['ls','-l','/']);
 $proc->run();
 
-$fd = $proc->getOutput();
+$fd = $proc->getOutputStream();
 $out = stream_get_contents($fd);
 var_dump($out);
 ```
@@ -291,7 +291,7 @@ $proc2 = new Process('cat');
 $proc2->setInput($p1_out);
 $proc2->run();
 
-$p2_out = $proc2->getOutput();
+$p2_out = $proc2->getOutputStream();
 
 $str = stream_get_contents($p2_out);
 ```
@@ -309,7 +309,7 @@ $proc = new Process('php');
 $body = '<?php echo date("c");';
 $proc->setInput($body);
 $proc->run();
-$fd = $proc->getOutput();
+$fd = $proc->getOutputStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> Hello World
 ```
@@ -346,7 +346,7 @@ $proc->pipe('cat')
   
 
 
-$fd = $proc->getErrout();
+$fd = $proc->getErrorOutStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> Hello World
 ```
@@ -372,7 +372,7 @@ $proc->setCmd('php')
   
 
 
-$fd = $proc->getErrout();
+$fd = $proc->getErrorOutStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> Hello World
 ```
@@ -390,7 +390,7 @@ $proc = new Process(['ssh','root@192.168.2.1','sh -c date']);
 
 $proc->run();
 
-$fd = $proc->getOutput();
+$fd = $proc->getOutputStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> Sat Mar 14 09:32:18 JST 2020
 ```
@@ -407,7 +407,7 @@ $proc = new Process('sh',['Hello'=>'World']);
 $proc->setInput('echo $Hello');
 
 $proc->run();
-$fd = $proc->getOutput();
+$fd = $proc->getOutputStream();
 $out = stream_get_contents($fd);
 var_dump($out);// -> World\n
 ```
@@ -426,7 +426,7 @@ $proc->setInput('<?php echo "Hello World";');
 $proc->start();
 $proc->wait();
 
-$fd_out= $proc->getOutput();
+$fd_out= $proc->getOutputStream();
 var_dump(stream_get_contents($fd_out));
 ```
 ## timeout.php
@@ -444,7 +444,7 @@ $proc->setTimeout(1);
 
 $proc->start();
 $proc->wait();
-$fd_out= $proc->getOutput();
+$fd_out= $proc->getOutputStream();
 
 var_dump(stream_get_contents($fd_out));
 ```
@@ -462,7 +462,7 @@ $proc->setInput('<?php echo "Hello World";');
 $proc->start();
 $proc->wait();
 
-$fd_out= $proc->getOutput();
+$fd_out= $proc->getOutputStream();
 var_dump(stream_get_contents($fd_out));
 ```
 ## wait_and_timeout.php
@@ -482,8 +482,8 @@ $proc->setTimeout(2);
 $proc->start();
 $proc->wait();
 
-$fd_out= $proc->getOutput();
-$fd_err= $proc->getErrout();
+$fd_out= $proc->getOutputStream();
+$fd_err= $proc->getErrorOutStream();
 var_dump(stream_get_contents($fd_out));
 var_dump(stream_get_contents($fd_err));
 ```

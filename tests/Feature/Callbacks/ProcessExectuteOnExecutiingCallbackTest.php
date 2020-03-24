@@ -30,8 +30,8 @@ class ProcessExectuteOnExecutiingCallbackTest extends TestCase {
     $proc->setInput($fin);
     $proc->setOnWaiting($callback);
     $proc->run();
-    $out = stream_get_contents($proc->getOutput());
-    $err = stream_get_contents($proc->getErrout());
+    $out = stream_get_contents($proc->getOutputStream());
+    $err = stream_get_contents($proc->getErrorOutStream());
     $this->assertEquals(10, preg_match_all('/(HelloWorld)/s', $out, $maches));
     $this->assertEquals(10, preg_match_all('/(HelloError)/s', $err, $maches));
   }
@@ -59,8 +59,8 @@ class ProcessExectuteOnExecutiingCallbackTest extends TestCase {
     $proc->setInput($fin);
     $proc->setOnWaiting($callback);
     $proc->run();
-    $out = stream_get_contents($proc->getOutput());
-    $err = stream_get_contents($proc->getErrout());
+    $out = stream_get_contents($proc->getOutputStream());
+    $err = stream_get_contents($proc->getErrorOutStream());
     $this->assertEquals(10, preg_match_all('/(HelloWorld)/s', $out, $maches));
     $this->assertEquals(10, preg_match_all('/(HelloError)/s', $err, $maches));
   }
@@ -94,8 +94,8 @@ class ProcessExectuteOnExecutiingCallbackTest extends TestCase {
     $proc->setOnWaiting($callback);
     $proc->run();
     // getout put to eof
-    $out = stream_get_contents($proc->getOutput());
-    $err = stream_get_contents($proc->getErrout());
+    $out = stream_get_contents($proc->getOutputStream());
+    $err = stream_get_contents($proc->getErrorOutStream());
     // merge chunk read to eof
     rewind($temp);
     $err = stream_get_contents($temp).$err;

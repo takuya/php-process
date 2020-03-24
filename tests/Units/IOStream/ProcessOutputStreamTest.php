@@ -11,7 +11,7 @@ class ProcessOutputStreamTest extends TestCase {
     $proc = new Process(['sh']);
     $proc->setInput('echo HelloWorld');
     $proc->run();
-    $fd = $proc->getOutput();
+    $fd = $proc->getOutputStream();
     $this->assertEquals(true, stream_get_meta_data($fd)['seekable']);
   }
   
@@ -19,7 +19,7 @@ class ProcessOutputStreamTest extends TestCase {
     $proc = new Process(['sh']);
     $proc->setInput('echo HelloWorld');
     $proc->run();
-    $fd = $proc->getOutput();
+    $fd = $proc->getOutputStream();
     $this->assertEquals(0, ftell($fd));
   }
   
@@ -28,7 +28,7 @@ class ProcessOutputStreamTest extends TestCase {
     $proc = new Process(['sh']);
     $proc->setInput('echo  HelloWorld');
     $proc->run();
-    $fd = $proc->getOutput();
+    $fd = $proc->getOutputStream();
     $this->assertRegExp('/HelloWorld/', stream_get_contents($fd));
     rewind($fd);
     $this->assertRegExp('/HelloWorld/', stream_get_contents($fd));
@@ -38,7 +38,7 @@ class ProcessOutputStreamTest extends TestCase {
     $size = 1024;
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
     $proc->run();
-    $fd = $proc->getOutput();
+    $fd = $proc->getOutputStream();
     fseek($fd, SEEK_END);
     $this->assertEquals($size, fstat($fd)['size']);
   }
@@ -47,7 +47,7 @@ class ProcessOutputStreamTest extends TestCase {
     $size = 256*256;
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
     $proc->run();
-    $fd = $proc->getOutput();
+    $fd = $proc->getOutputStream();
     fseek($fd, SEEK_END);
     $this->assertEquals($size, fstat($fd)['size']);
   }
@@ -69,7 +69,7 @@ class ProcessOutputStreamTest extends TestCase {
     $proc->enableBufferingOnWait();
     $proc->setTimeout(0.25);
     $proc->run();
-    $fd = $proc->getOutput();
+    $fd = $proc->getOutputStream();
     fseek($fd, SEEK_END);
     $this->assertEquals($size, fstat($fd)['size']);
   }
@@ -79,7 +79,7 @@ class ProcessOutputStreamTest extends TestCase {
     $proc = new Process(['head', '-c', $size, '/dev/urandom']);
     $proc->setOutput($fd = fopen('php://temp', 'w'));
     $proc->run();
-    $fd = $proc->getOutput();
+    $fd = $proc->getOutputStream();
     fseek($fd, SEEK_END);
     $this->assertEquals($size, fstat($fd)['size']);
   }

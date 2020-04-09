@@ -18,7 +18,7 @@ class Process {
   /**
    * @var int microsecond.
    */
-  protected $wait_time = 1000*10;
+  protected $wait_time = 1000*0.5;
   /**
    * @var \Closure
    */

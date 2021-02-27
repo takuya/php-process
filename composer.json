@@ -39,12 +39,5 @@
     "psr-4": {
       "Tests\\": "tests/"
     }
-  },
-  "repositories": {
-    "packagist": {
-      "type": "composer",
-      "url": "https://packagist.jp"
-    }
   }
-  
 }

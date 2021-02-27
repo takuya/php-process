@@ -177,13 +177,28 @@ class Process {
   
   /**
    * run Process, and wait for finished. Blocking method.
+   * @param \Closure|null $on_changed --  function ( $status_code , string $buff ){..} for Symfony::Process Compatible.
    * @return resource[]  fd array, The struct is [ 1=> output , 2=> error]. Both of fd is 'buffered' to enable fseek.
    * @throws \Exception
    */
-  public function run() {
-    $this->process_exec();
+  public function run( $func = null ) {
+    if (!is_null($func) ){
+      return $this->run_with_callback($func);
+    }
     
+    $this->process_exec();
     return [1 => $this->getOutputStream(), 2 => $this->getErrorOutStream()];
+  }
+  /*
+   * Run process with callback.
+   * @param \Closure|null $on_changed --  function ( $status_code , string $buff ){..} for Symfony::Process Compatible.
+   */
+  public function run_with_callback($callback) {
+    $this->setOnErrputChanged( function($buff) use($callback){$callback(2,$buff);} );
+    $this->setOnOutputChanged( function($buff) use($callback){$callback(1,$buff);} );
+    $this->process_exec();
+  
+    return [ 1=> $this->getOutputStream(), 2 => $this->getErrorOutStream()];
   }
   
   /**

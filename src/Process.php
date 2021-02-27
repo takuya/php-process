@@ -15,6 +15,10 @@ use phpDocumentor\Reflection\Types\This;
  */
 class Process {
   
+  const STDOUT=1;
+  const STDERR=2;
+  const ERR=self::STDERR;
+  
   /**
    * @var int microsecond.
    */
@@ -510,6 +514,11 @@ class Process {
    * @return mixed
    */
   public function getCmd() {
+    preg_match('|^([\d.]+)|',phpversion(),$m);
+    if( is_array($this->cmd) && sizeof($m)>0 && floatval($m[0]) && floatval($m[0]) < 7.4 ){
+      $cmd = join(' ',$this->cmd);
+      return $cmd;
+    }
     return $this->cmd;
   }
   

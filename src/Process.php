@@ -494,7 +494,7 @@ class Process {
     preg_match('|^([\d.]+)|',phpversion(),$m);
     if( is_array($cmd) && sizeof($m)>0 && floatval($m[0]) && floatval($m[0]) < 7.4 ){
       $cmd = array_map( function($e){
-        return preg_match('|\s\'"|', $e)?escapeshellarg($e):$e;
+        return preg_match('/\s|\'|"/', $e)?escapeshellarg($e):$e;
       }, $cmd);
       $cmd = join(' ',$cmd);
       return $cmd;

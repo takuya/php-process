@@ -308,7 +308,7 @@ class Process {
       1 => $this->getOutputStream() ?: ['pipe', 'w'],
       2 => $this->getErrorOutStream() ?: ['pipe', 'w'],
     ];
-    $process = proc_open($this->getCmd(), $descriptor, $pipes, $this->getCwd(), $this->getEnv());
+    $process = proc_open($this->getCommandLine(), $descriptor, $pipes, $this->getCwd(), $this->getEnv());
     if( ! $process ) {
       throw new \Exception("proc_open failed");
     }
@@ -489,9 +489,15 @@ class Process {
    * @return string command line
    */
   public function getCommandLine(){
-    $cmd = $this->getCmd();
-    if ( is_array($cmd )){
-      $cmd  = join(' ', $cmd);
+    $cmd = $this->cmd;
+    //
+    preg_match('|^([\d.]+)|',phpversion(),$m);
+    if( is_array($cmd) && sizeof($m)>0 && floatval($m[0]) && floatval($m[0]) < 7.4 ){
+      $cmd = array_map( function($e){
+        return preg_match('|\s\'"|', $e)?escapeshellarg($e):$e;
+      }, $cmd);
+      $cmd = join(' ',$cmd);
+      return $cmd;
     }
     return $cmd;
   }
@@ -529,11 +535,6 @@ class Process {
    * @return mixed
    */
   public function getCmd() {
-    preg_match('|^([\d.]+)|',phpversion(),$m);
-    if( is_array($this->cmd) && sizeof($m)>0 && floatval($m[0]) && floatval($m[0]) < 7.4 ){
-      $cmd = join(' ',$this->cmd);
-      return $cmd;
-    }
     return $this->cmd;
   }
   

@@ -93,7 +93,7 @@ The reason is `Process` class adopt implied IOBuffering at `wait`, so `calling w
 
 No extra packages required.
 
-A Single File ` require_once 'src/Process.php' ` need to use. vanilla php, no dependencies.
+A Single File `src/Process.php` need to use. just write require_once like this.
 
 ```php
 

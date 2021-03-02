@@ -948,6 +948,14 @@ class Process {
   public function join(){
     return $this->wait();
   }
+  /**
+   * pseudo-thread style coding are supported by this function.
+   * @return bool|resource|null
+   */
+  public function stop(){
+    return $this->signal(15);
+  }
+  
   
   /**
    * Wait process.

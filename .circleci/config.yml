@@ -12,6 +12,7 @@ workflows:
             branches:
               only:
                 - pre-release
+                - master
 jobs:
   test:
     docker:

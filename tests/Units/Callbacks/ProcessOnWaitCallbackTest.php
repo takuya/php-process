@@ -106,7 +106,7 @@ class ProcessOnWaitCallbackTest extends TestCase {
     $src = sprintf('<?php
       foreach( range(0,%s) as $i ){
         echo "Hello\n";
-        usleep(1);
+        usleep(5);
       }
     ', $loop_count-1);
     $proc = new Process('php');

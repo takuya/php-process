@@ -102,9 +102,9 @@ require_once 'src/Process.php';
 
 ``` 
 
-Using without Composer.phar or Such a package manager, Just write require_once.
+This `Process class` is written by ***vanilla php***. No extra packages. No pear, No composer, No other packages need to install.  
+Using this without `composer.phar` or other Package manager, all you need is Just write require_once.
  
-This `Process class` is written by ***vanilla php***. No extra packages. No pear, No composer, No other packages need to install.
 
 
 More Samples

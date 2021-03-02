@@ -11,7 +11,7 @@ class ProcessExectuteOutputTest extends TestCase {
   /**
    * redirect stdout to unwritable file (string) -- permission denied
    */
-  public function testOutputRedirectToUWritableFile() {
+  public function testOutputRedirectToUnWritableFile() {
     
     $this->expectException(\PHPUnit\Framework\Error\Warning::class);
     $output = "/a";

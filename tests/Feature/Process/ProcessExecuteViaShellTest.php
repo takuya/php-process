@@ -5,27 +5,27 @@ namespace Tests\Feature\Process;
 use Tests\TestCase;
 use SystemUtil\Process;
 
-class ProcessExecuteViaSshTest extends TestCase {
+class ProcessExecuteViaShellTest extends TestCase {
   
   public function testProcessExecuteViaSSH() {
     
     $cmd = [
-      'ssh',
-      'localhost',
-      'echo  Hello via ssh ',
+      'sh',
+      '-c',
+      'echo  Hello via sh ',
     ];
     $proc = new Process($cmd);
     $proc->run();
     $out = stream_get_contents($proc->getOutputStream());
     $err = stream_get_contents($proc->getErrorOutStream());
-    $this->assertRegExp('/Hello via ssh/i', $out);
+    $this->assertRegExp('/Hello via sh/i', $out);
   }
   
   public function testProcessExecuteViaSSHWithInputRedirect() {
     
     $cmd = [
-      'ssh',
-      'localhost',
+      'sh',
+      '-c',
       'cat',
     ];
     $fin = fopen("php://temp", 'w+');

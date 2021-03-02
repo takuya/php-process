@@ -86,7 +86,7 @@ $proc2->start();
 $proc2->wait();
 $proc1->wait();
 ```
-Notice: `$proc2->wait()` call first, to avoid long locking andto run two process in parallel.
+Notice: `$proc2->wait()` call first, to avoid long locking , to run two process in parallel.
 The reason is `Process` class adopt implied IOBuffering. calling `wait()` means that runs stream buffering loop until process endup;
 
 ### A Simple and Single File for requParallels

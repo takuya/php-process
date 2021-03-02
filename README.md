@@ -64,6 +64,7 @@ $proc->join();
 
 Process#pipe() can PIPE programs.
 
+Implicite connect pipe stdout -> stdin
 ```php
 
 <?php
@@ -74,8 +75,21 @@ $fd_out =  $proc->pipe('cat')
             ->pipe('cat')
             ->wait();
 ```
+Explicitly Pipe,  connect (Proc1#)stdout -> stdin(@Proc2)
+```php
+<?php
+$proc1 = new Process(['echo', 'HelloWorld']);
+$proc2 = new Process(['cat']);
+[$p1_out,$p1_err] = $proc1->start();
+$proc2->setInput($p1_out);
+$proc2->start();
+$proc2->wait();
+$proc1->wait();
+```
+Notice: `$proc2->wait()` call first, to avoid locking and　to run two process in parallel.
+The reason is `Process` class adopt implied IOBuffering. `wait()` called means that runs stream buffering loop until process endup;
 
-### A Simple and Single File for require.
+### A Simple and Single File for requParallels
 
 No packages required.
 

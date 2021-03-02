@@ -2,7 +2,8 @@ php-Process for proc_open
 =================
 
 The Process class component executes command in proc_open.
-  
+
+![<CircleciTest>](https://circleci.com/gh/takuya/php-process.svg?style=svg)
 
 Sample
 ------

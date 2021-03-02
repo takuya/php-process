@@ -75,7 +75,7 @@ $fd_out =  $proc->pipe('cat')
             ->pipe('cat')
             ->wait();
 ```
-Explicitly Pipe,  connect (Proc1#)stdout -> stdin(@Proc2)
+Explicitly Pipe,  connect (Proc1#)stdout -> (Proc2#)stdin
 ```php
 <?php
 $proc1 = new Process(['echo', 'HelloWorld']);

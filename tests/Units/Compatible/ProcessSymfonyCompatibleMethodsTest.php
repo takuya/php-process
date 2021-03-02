@@ -1,6 +1,6 @@
 <?php
 
-namespace Tests\Units\IOStream;
+namespace Tests\Units\Compatible;
 
 use Tests\TestCase;
 use SystemUtil\Process;
@@ -32,7 +32,12 @@ class ProcessSymfonyCompatibleMethodsTest extends TestCase {
     $this->assertEquals($cmd, $proc->getCommandLine());
     
     $proc = new Process(preg_split('/\s+/', $cmd));
-    $this->assertEquals($cmd, $proc->getCommandLine());
+    preg_match('|^([\d.]+)|',phpversion(),$m);
+    if ( floatval($m[0]) < 7.4 ){
+      $this->assertEquals($cmd, $proc->getCommandLine());
+    }else{
+      $this->assertEquals(preg_split('/\s+/', $cmd), $proc->getCommandLine());
+    }
   }
   public function testExitCodeAndIsSuccessful() {
     $proc = new Process(['php']);

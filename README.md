@@ -91,9 +91,9 @@ The reason is `Process` class adopt implied IOBuffering at `wait`, so `calling w
 
 ### A Simple way, Only Single File for use.
 
-No packages required.
+No extra packages required.
 
-A Single File ` require_once 'src/Process.php' ` need to use. 
+A Single File ` require_once 'src/Process.php' ` need to use. vanilla php, no dependencies.
 
 ```php
 
@@ -104,7 +104,7 @@ require_once 'src/Process.php';
 
 Using without Composer.phar or Such a package manager, Just write require_once.
  
-Process class is written by ***vanilla php***. No extra packages. No pear, No composer, No packages need to install.
+This `Process class` is written by ***vanilla php***. No extra packages. No pear, No composer, No other packages need to install.
 
 
 More Samples

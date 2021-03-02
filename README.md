@@ -50,6 +50,15 @@ $output = stream_get_contents($fd_out);
 fseek($fd_out,0);
 $str = stream_get_contents($fd_out);
 ```
+### Pseudo-thread style programming
+```php
+<?php
+$proc = new Process('sh sleep.sh');
+$proc->start();
+echo 'started';
+$proc->join();
+```
+
 
 ### Chain Method for Pipe Command
 

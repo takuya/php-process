@@ -917,7 +917,7 @@ class Process {
    * @throws \Exception
    */
   public function pipeProcess( Process $proc2 ):Process {
-    list($out, $err) = $this->start();
+    [$out, $err] = $this->start();
     $proc2->setInput($out);
     $proc2->start();
     $this->pipedNextProcess = $proc2;
@@ -940,6 +940,13 @@ class Process {
       $this->getOutputStream() ?: $this->getPipe(1),
       $this->getErrorOutStream() ?: $this->getPipe(2),
     ];
+  }
+  /**
+   * pseudo-thread style coding are supported by this function.
+   * @return bool|resource|null
+   */
+  public function join(){
+    return $this->wait();
   }
   
   /**

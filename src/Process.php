@@ -402,6 +402,8 @@ class Process {
       && get_resource_type($out) == 'stream'
       && stream_get_meta_data($out)['seekable']
       && rewind($out);
+    } else if ( is_null( $out ) && $this->isRunning()){
+      return $this->current_process->pipes[$i];
     }
     
     return $out;
@@ -464,7 +466,6 @@ class Process {
     if( $this->pipedNextProcess ) {
       return $this->pipedNextProcess->getOutputStream();
     }
-    
     return $this->getOutStream(1);
   }
   

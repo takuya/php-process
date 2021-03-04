@@ -140,5 +140,34 @@ class ProcessExectutePipeTest extends TestCase {
     $this->assertEquals("Hello World", stream_get_contents($fd));
     
   }
+  public function testPipe5OutputStream(){
+    $str = '
+    echo Hello
+    echo HelloWorld
+    echo Hello Sample
+    ';
+    $proc1 = new Process('sh');
+    $proc1->setInput($str);
+    $proc1->start();
+    $p1_out = $proc1->getOutputStream();
+    //
+    $proc2 = new Process('cat');
+    $proc2->setInput($p1_out);
+    $proc2->start();
+    //
+    $proc3 = new Process(['grep','HelloWorld']);
+    $proc3->setInput($proc2->getOutputStream());
+    $proc3->start();
+    $proc3->wait();
+    $proc2->wait();
+    $proc1->wait();
+    
+    
+    $str = $proc3->getOutput();
+    $str = trim($str);
+    $this->assertEquals("HelloWorld", $str);
+    
+    
+  }
 
 }

@@ -25,13 +25,6 @@ workflows:
               only:
                 - pre-release
                 - master
-      - test-7.2:
-          filters:
-            branches:
-              only:
-                - pre-release
-                - master
-
 jobs:
   test-8.0:
     docker:
@@ -98,37 +91,3 @@ jobs:
             sudo -u www-data php ./vendor/bin/phpunit --testsuite Feature &&
             sudo -u www-data php ./vendor/bin/phpunit --testsuite SampleCode &&
             echo end;
-    test-7.2:
-      docker:
-        # Specify the version you desire here
-        - image: php:7.2-cli
-      steps:
-        - run:
-            shell: /bin/bash
-            command:
-              apt-get update;
-              apt-get install -y --no-install-recommends git vim-nox sudo;
-        - run:
-            shell: /bin/bash
-            command: |
-              apt-get -y install libzip-dev unzip;
-              docker-php-ext-install zip;
-              docker-php-ext-enable zip;
-        - checkout
-        - run:
-            shell: /bin/bash
-            command: |
-              mkdir -p /var/www/; cp -r  ~/project /var/www/project;
-              chown -R www-data:www-data /var/www/; chmod -R g+rwx /var/www/;
-              cd /var/www/project;
-              sudo -u www-data php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
-              sudo -u www-data php composer-setup.php
-              sudo -u www-data php composer.phar install -n --prefer-dist
-        - run:
-            shell: /bin/bash
-            command: |
-              cd /var/www/project &&
-              sudo -u www-data php ./vendor/bin/phpunit --testsuite Units &&
-              sudo -u www-data php ./vendor/bin/phpunit --testsuite Feature &&
-              sudo -u www-data php ./vendor/bin/phpunit --testsuite SampleCode &&
-              echo end;

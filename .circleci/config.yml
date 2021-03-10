@@ -25,6 +25,12 @@ workflows:
               only:
                 - pre-release
                 - master
+      - test-7.2:
+          filters:
+            branches:
+              only:
+                - pre-release
+                - master
 
 jobs:
   test-8.0:

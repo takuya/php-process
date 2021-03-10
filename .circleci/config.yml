@@ -66,13 +66,26 @@ jobs:
       - checkout
       - run:
           shell: /bin/bash
-          command: |
+          command:
             apt-get update;
             apt-get install -y --no-install-recommends git;
+      - run:
+          shell: /bin/bash
+          command: |
+            apt-get -y install libzip-dev unzip;
+            docker-php-ext-install zip;
+            docker-php-ext-enable zip;
+      - run:
+          shell: /bin/bash
+          command: |
             cd ~/project
             php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
             php composer-setup.php
             php composer.phar install -n --prefer-dist
+      - run:
+          shell: /bin/bash
+          command: |
+            cd ~/project &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite SampleCode &&

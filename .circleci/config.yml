@@ -79,7 +79,7 @@ jobs:
           shell: /bin/bash
           command: |
             mkdir -p /var/www/; cp -r  ~/project /var/www/project;
-            chown www-data:www-data /var/www/; -R && chmod g+rwx /var/www/;
+            chown -R www-data:www-data /var/www/; chmod -R g+rwx /var/www/;
             cd /var/www/project;
             sudo -u www-data php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
             sudo -u www-data php composer-setup.php

@@ -72,7 +72,7 @@ jobs:
             cd ~/project
             php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
             php composer-setup.php
-            composer install -n --prefer-dist
+            php composer.phar install -n --prefer-dist
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite SampleCode &&

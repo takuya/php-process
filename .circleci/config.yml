@@ -68,7 +68,7 @@ jobs:
           shell: /bin/bash
           command:
             apt-get update;
-            apt-get install -y --no-install-recommends git;
+            apt-get install -y --no-install-recommends git vim-nox sudo;
       - run:
           shell: /bin/bash
           command: |
@@ -79,14 +79,15 @@ jobs:
           shell: /bin/bash
           command: |
             cd ~/project
-            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
-            php composer-setup.php
-            php composer.phar install -n --prefer-dist
+            chown www-data:www-data . -R && chmod g+rwx;
+            sudo -u www-data php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
+            sudo -u www-data php composer-setup.php
+            sudo -u www-data php composer.phar install -n --prefer-dist
       - run:
           shell: /bin/bash
           command: |
             cd ~/project &&
-            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
-            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
-            /usr/local/bin/php ./vendor/bin/phpunit --testsuite SampleCode &&
+            sudo -u www-data php ./vendor/bin/phpunit --testsuite Units &&
+            sudo -u www-data php ./vendor/bin/phpunit --testsuite Feature &&
+            sudo -u www-data php ./vendor/bin/phpunit --testsuite SampleCode &&
             echo done;

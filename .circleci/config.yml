@@ -69,8 +69,10 @@ jobs:
           command: |
             apt-get update;
             apt-get install -y --no-install-recommends git;
-            cd ~/project  &&
-            composer install -n --prefer-dist &&
+            cd ~/project
+            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
+            php composer-setup.php
+            composer install -n --prefer-dist
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite SampleCode &&

@@ -7,18 +7,18 @@ workflows:
   version: 2
   test-php-versions:
     jobs:
-      - test-8.0:
-          filters:
-            branches:
-              only:
-                - pre-release
-                - master
-      - test-7.4:
-          filters:
-            branches:
-              only:
-                - pre-release
-                - master
+      #      - test-8.0:
+      #          filters:
+      #            branches:
+      #              only:
+      #                - pre-release
+      #                - master
+      #      - test-7.4:
+      #          filters:
+      #            branches:
+      #              only:
+      #                - pre-release
+      #                - master
       - test-7.3:
           filters:
             branches:
@@ -67,7 +67,8 @@ jobs:
       - run:
           shell: /bin/bash
           command: |
-            apt-get install -y --no-install-recommends git
+            apt-get update;
+            apt-get install -y --no-install-recommends git;
             cd ~/project  &&
             composer install -n --prefer-dist &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&

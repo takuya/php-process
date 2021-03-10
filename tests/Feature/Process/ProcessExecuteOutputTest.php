@@ -6,7 +6,7 @@ use Exception;
 use Tests\TestCase;
 use SystemUtil\Process;
 
-class ProcessExectuteOutputTest extends TestCase {
+class ProcessExecuteOutputTest extends TestCase {
   
   /**
    * redirect stdout to unwritable file (string) -- permission denied

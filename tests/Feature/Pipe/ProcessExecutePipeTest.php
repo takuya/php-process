@@ -5,7 +5,7 @@ namespace Tests\Feature\Pipe;
 use Tests\TestCase;
 use SystemUtil\Process;
 
-class ProcessExectutePipeTest extends TestCase {
+class ProcessExecutePipeTest extends TestCase {
   
   public function testTwoProcessJoinByFd() {
     $str = '<?php

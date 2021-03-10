@@ -6,7 +6,7 @@ use Exception;
 use Tests\TestCase;
 use SystemUtil\Process;
 
-class ProcessExectuteInputTest extends TestCase {
+class ProcessExecuteInputTest extends TestCase {
   
   /**
    * redirect stdin to unreadable file (string) -- permission denied

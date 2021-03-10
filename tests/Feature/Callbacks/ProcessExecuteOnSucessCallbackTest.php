@@ -5,9 +5,9 @@ namespace Tests\Feature\Callbacks;
 use Tests\TestCase;
 use SystemUtil\Process;
 
-class ProcessExectuteOnSucessCallbackTest extends TestCase {
+class ProcessExecuteOnSucessCallbackTest extends TestCase {
   
-  public function testOnSucessCallbackStatus() {
+  public function testOnSuccessCallbackStatus() {
     // prepare
     $str = '<?php
     $stdout = fopen("php://stdout","w");
@@ -44,7 +44,7 @@ class ProcessExectuteOnSucessCallbackTest extends TestCase {
     $this->assertEquals('HelloError', $err);
   }
   
-  public function testOnSucessDoNothingCallback() {
+  public function testOnSuccessDoNothingCallback() {
     // prepare
     $str = '<?php
     $stdout = fopen("php://stdout","w");
@@ -69,7 +69,7 @@ class ProcessExectuteOnSucessCallbackTest extends TestCase {
     $this->assertEquals('HelloError', $err);
   }
   
-  public function testOnSucessClosePipes() {
+  public function testOnSuccessClosePipes() {
     // prepare
     $str = '<?php
     $stdout = fopen("php://stdout","w");

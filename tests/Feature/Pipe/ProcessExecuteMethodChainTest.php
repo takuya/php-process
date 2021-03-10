@@ -5,7 +5,7 @@ namespace Tests\Feature\Pipe;
 use Tests\TestCase;
 use SystemUtil\Process;
 
-class ProcessExectuteMethodChainTest extends TestCase {
+class ProcessExecuteMethodChainTest extends TestCase {
   
   public function testProcessInputMethodChainAndPipeMethocChain() {
     $str = 'echo HelloWorld';

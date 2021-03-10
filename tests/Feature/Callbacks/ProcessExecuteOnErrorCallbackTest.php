@@ -5,7 +5,7 @@ namespace Tests\Feature\Callbacks;
 use Tests\TestCase;
 use SystemUtil\Process;
 
-class ProcessExectuteOnErrorCallbackTest extends TestCase {
+class ProcessExecuteOnErrorCallbackTest extends TestCase {
   
   public function testOnErrorCallbackStatus() {
     // prepare

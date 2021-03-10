@@ -87,8 +87,7 @@ jobs:
       - run:
           shell: /bin/bash
           command: |
-            cd ~/project &&
-            sudo -u www-data php ./vendor/bin/phpunit --testsuite Units &&
-            sudo -u www-data php ./vendor/bin/phpunit --testsuite Feature &&
-            sudo -u www-data php ./vendor/bin/phpunit --testsuite SampleCode &&
-            echo done;
+            cd /var/www/project;
+            sudo -u www-data php ./vendor/bin/phpunit --testsuite Units ;
+            sudo -u www-data php ./vendor/bin/phpunit --testsuite Feature;
+            sudo -u www-data php ./vendor/bin/phpunit --testsuite SampleCode;

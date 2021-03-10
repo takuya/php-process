@@ -62,16 +62,15 @@ jobs:
     docker:
       # Specify the version you desire here
       - image: php:7.3-cli
+      - image: composer
     steps:
       - checkout
       - run:
           shell: /bin/bash
           command: |
+            apt-get install -y --no-install-recommends git 
             cd ~/project  &&
-            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
-            php composer-setup.php &&
-            php -r "unlink('composer-setup.php');" &&
-            php composer.phar install -n --prefer-dist &&
+            composer install -n --prefer-dist &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite SampleCode &&

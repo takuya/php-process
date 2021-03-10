@@ -5,16 +5,38 @@
 version: 2
 workflows:
   version: 2
-  test_and_installationt:
+  test-php-versions:
     jobs:
-      - test:
+      - test8.0:
           filters:
             branches:
               only:
                 - pre-release
                 - master
+      - test7.4:
+          filters:
+            branches:
+              only:
+                - pre-release
+                - master
+
 jobs:
-  test:
+  test-8.0:
+    docker:
+      # Specify the version you desire here
+      - image: circleci/php:8-cli
+    steps:
+      - checkout
+      - run:
+          shell: /bin/bash
+          command: |
+            cd ~/project  &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite SampleCode &&
+            echo done;
+  
+  test-7.4:
     docker:
       # Specify the version you desire here
       - image: circleci/php:7.4.3-cli
@@ -23,41 +45,8 @@ jobs:
       - run:
           shell: /bin/bash
           command: |
-            # Download and cache dependencies.
-            # sudo apt update
-            # ## prepare test for ssh
-            # sudo apt install -y --no-install-recommends openssh-server openssh-client
-            # sudo /etc/init.d/ssh start
-            ## prepare ssh login.
-            # ls ~/.ssh && rm -rf ~/.ssh
-            # ssh-keygen  -t rsa  -N "" -f ~/.ssh/id_rsa
-            # cat /home/circleci/.ssh/id_rsa.pub > /home/circleci/.ssh/authorized_keys
-            # touch ~/.ssh/known_hosts && rm ~/.ssh/known_hosts
-            # ssh-keyscan -t rsa,dsa localhost  2>/dev/null > ~/.ssh/known_hosts
-            # ssh localhost date
-            ## prepare for phpunit
-            cd ~/project  && composer install -n --prefer-dist
-            ##  prepare for  packagist installation test.
-            # mkdir /tmp/install-test
-            # cd /tmp/install-test
-            # composer require takuya/process
-            # ###
-            #  echo '<?php
-            #     use SystemUtil\Process;
-            #     require_once "./vendor/autoload.php";
-            #     $proc = new Process(["echo", "HelloWorld"]);
-            #     $proc->run();'  > run.php
-            #  ## test
-            #  cd /tmp/install-test &&
-            #  /usr/local/bin/php run.php &&
             cd ~/project  &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite SampleCode &&
             echo done;
-
-
-      # run tests with phpunit or codecept
-      # - run: ./vendor/bin/codecept build
-      # - run: ./vendor/bin/codecept run
-

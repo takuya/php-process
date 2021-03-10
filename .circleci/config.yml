@@ -68,7 +68,10 @@ jobs:
           shell: /bin/bash
           command: |
             cd ~/project  &&
-            composer install -n --prefer-dist &&
+            php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
+            php composer-setup.php &&
+            php -r "unlink('composer-setup.php');" &&
+            php composer.phar install -n --prefer-dist &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite SampleCode &&

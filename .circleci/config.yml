@@ -78,8 +78,9 @@ jobs:
       - run:
           shell: /bin/bash
           command: |
-            cd ~/project
-            chown www-data:www-data . -R && chmod g+rwx;
+            cp -r  project /var/www/project
+            chown www-data:www-data /var/www/project -R && chmod g+rwx /var/www/project;
+            cd /var/www/project;
             sudo -u www-data php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
             sudo -u www-data php composer-setup.php
             sudo -u www-data php composer.phar install -n --prefer-dist

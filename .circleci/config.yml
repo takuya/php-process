@@ -19,6 +19,12 @@ workflows:
               only:
                 - pre-release
                 - master
+      - test-7.3:
+          filters:
+            branches:
+              only:
+                - pre-release
+                - master
 
 jobs:
   test-8.0:
@@ -41,6 +47,21 @@ jobs:
     docker:
       # Specify the version you desire here
       - image: circleci/php:7.4.3-cli
+    steps:
+      - checkout
+      - run:
+          shell: /bin/bash
+          command: |
+            cd ~/project  &&
+            composer install -n --prefer-dist &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite SampleCode &&
+            echo done;
+  test-7.3:
+    docker:
+      # Specify the version you desire here
+      - image: php:7.3-cli
     steps:
       - checkout
       - run:

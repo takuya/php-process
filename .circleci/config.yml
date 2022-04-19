@@ -26,6 +26,22 @@ workflows:
                 - pre-release
                 - master
 jobs:
+  test-8.1:
+    docker:
+      # Specify the version you desire here
+      - image: cimg/php:8.1
+    steps:
+      - checkout
+      - run:
+          shell: /bin/bash
+          command: |
+            /usr/local/bin/php --version &&
+            cd ~/project  &&
+            composer install -n --prefer-dist &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite SampleCode &&
+            echo done;
   test-8.0:
     docker:
       # Specify the version you desire here

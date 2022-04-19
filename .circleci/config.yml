@@ -29,12 +29,13 @@ jobs:
   test-8.0:
     docker:
       # Specify the version you desire here
-      - image: circleci/php:8-cli
+      - image: cimg/php:8.0
     steps:
       - checkout
       - run:
           shell: /bin/bash
           command: |
+            /usr/local/bin/php --version &&
             cd ~/project  &&
             composer install -n --prefer-dist &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&

@@ -67,7 +67,7 @@ jobs:
           shell: /bin/bash
           command:
             apt-get update;
-            apt-get install -y --no-install-recommends git vim-nox sudo;
+            apt-get install -y --no-install-recommends git openssh-client vim-nox sudo;
       - run:
           shell: /bin/bash
           command: |

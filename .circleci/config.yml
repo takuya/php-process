@@ -7,6 +7,12 @@ workflows:
   version: 2
   test-php-versions:
     jobs:
+      - test-8.1:
+          filters:
+            branches:
+              only:
+                - pre-release
+                - master
       - test-8.0:
           filters:
             branches:
@@ -61,7 +67,7 @@ jobs:
   test-7.4:
     docker:
       # Specify the version you desire here
-      - image: circleci/php:7.4.3-cli
+      - image: cimg/php:7.4
     steps:
       - checkout
       - run:

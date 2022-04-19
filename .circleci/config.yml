@@ -7,6 +7,12 @@ workflows:
   version: 2
   test-php-versions:
     jobs:
+      - test-8.1:
+          filters:
+            branches:
+              only:
+                - pre-release
+                - master
       - test-8.0:
           filters:
             branches:
@@ -26,15 +32,31 @@ workflows:
                 - pre-release
                 - master
 jobs:
-  test-8.0:
+  test-8.1:
     docker:
-      # Specify the version you desire here
-      - image: circleci/php:8-cli
+      - image: cimg/php:8.1.5
     steps:
       - checkout
       - run:
           shell: /bin/bash
           command: |
+            /usr/local/bin/php --version &&
+            cd ~/project  &&
+            composer install -n --prefer-dist &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite Feature &&
+            /usr/local/bin/php ./vendor/bin/phpunit --testsuite SampleCode &&
+            echo done;
+  test-8.0:
+    docker:
+      # Specify the version you desire here
+      - image: cimg/php:8.0
+    steps:
+      - checkout
+      - run:
+          shell: /bin/bash
+          command: |
+            /usr/local/bin/php --version &&
             cd ~/project  &&
             composer install -n --prefer-dist &&
             /usr/local/bin/php ./vendor/bin/phpunit --testsuite Units &&
@@ -45,7 +67,7 @@ jobs:
   test-7.4:
     docker:
       # Specify the version you desire here
-      - image: circleci/php:7.4.3-cli
+      - image: cimg/php:7.4
     steps:
       - checkout
       - run:
@@ -66,7 +88,7 @@ jobs:
           shell: /bin/bash
           command:
             apt-get update;
-            apt-get install -y --no-install-recommends git vim-nox sudo;
+            apt-get install -y --no-install-recommends git openssh-client vim-nox sudo;
       - run:
           shell: /bin/bash
           command: |

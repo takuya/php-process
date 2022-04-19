@@ -9,7 +9,7 @@ use Closure;
  * Class Process
  * @license  GPL-3.0 or later
  * @package  SystemUtil\Process
- * @author   takuya_1st <http://github.com/takuya/php-process>
+ * @author   takuya_1st <https://github.com/takuya/php-process>
  * @since    2020-03-13
  * @version  1.0
  */
@@ -109,7 +109,6 @@ class Process {
    */
   protected function processStruct() {
     return new class { // Struct
-      
       public $proc           = null;
       public $pipes          = [];
       public $descriptor     = [];
@@ -486,7 +485,7 @@ class Process {
   }
   
   /**
-   * Get process Commind Line as String for compatibility
+   * Get process Command Line as String for compatibility
    * @return string command line
    */
   public function getCommandLine(){

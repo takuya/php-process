@@ -5,6 +5,18 @@ The Process class component executes command in proc_open.
 
 ![<CircleciTest>](https://circleci.com/gh/takuya/php-process.svg?style=shield)
 
+## Cation !
+
+I re-write this package and split into two package.
+
+- [php-Process](https://github.com/takuya/php-process-exec) Process handler class
+- [ProcOpen](https://github.com/takuya/php-proc_open-wrapper) proc_open wrapper class 
+
+please use these class. instead of using this packages.
+
+This package intended to be used as SINGLE-FILE not complicated composer package.
+
+
 Sample
 ------
 ```php
